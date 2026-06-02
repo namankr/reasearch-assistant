@@ -1,0 +1,107 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+wheels/
+
+# ── Virtual Environment ───────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+.env.local
+.env.*.local
+
+# ── Environment Variables ─────────────────────────────────────────────────────
+.env
+!.env.example
+
+# ── Jupyter Notebooks ─────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── ML / Data ─────────────────────────────────────────────────────────────────
+data/raw/
+data/processed/
+*.csv
+*.zip
+*.parquet
+*.feather
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+
+# ── Model Artifacts ───────────────────────────────────────────────────────────
+models/
+*.joblib
+*.pt
+*.pth
+*.onnx
+*.bin
+*.safetensors
+
+# ── MLflow ────────────────────────────────────────────────────────────────────
+mlruns/
+mlartifacts/
+mlflow.db
+
+# ── Downloaded / External Data ───────────────────────────────────────────────
+FinancialPhraseBank-v1.0/
+FinancialPhraseBank-v1.0.zip
+creditcard.csv/
+creditcard.csv.zip
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+coverage.xml
+*.cover
+nosetests.xml
+
+# ── Type Checking ─────────────────────────────────────────────────────────────
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+
+# ── IDEs ──────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+.dockerignore
+
+# ── HTML ──────────────────────────────────────────────────────────────────────
+interview-prep.html
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+*.tmp
+*.bak
+*.orig
