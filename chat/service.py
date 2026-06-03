@@ -12,7 +12,7 @@ class ChatService:
     """
     def __init__(self, project_id:str, session_id:str = None):
         self.project_id = project_id
-        self.session_id = session_id or str(uuid.UUID4())
+        self.session_id = session_id or str(uuid.uuid4())
         self._init_db()
     
     def _init_db(self):

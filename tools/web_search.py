@@ -1,8 +1,8 @@
-# tavily tool
-from tavily import TavilyClient
-from config import TAVILY_API_KEY
+# web search tool — DuckDuckGo (default) or Tavily (set SEARCH_PROVIDER=tavily)
+import truststore
+from config import SEARCH_PROVIDER, TAVILY_API_KEY
 
-_client = TavilyClient(api_key=TAVILY_API_KEY)
+truststore.inject_into_ssl()  # Use Windows native cert store (handles Zscaler CA)
 
 # ── Tool definition (Gemini function calling format) ──────────────────────
 
@@ -24,21 +24,33 @@ WEB_SEARCH_TOOL = {
     }
 }
 
-def web_search(query: str)-> str:
+def _search_ddgs(query: str) -> str:
+    from ddgs import DDGS
+    with DDGS() as ddgs:
+        results = list(ddgs.text(query, max_results=5))
+    if not results:
+        return "No results found."
+    return "\n".join(f"- {r['title']}: {r['body'][:200]}" for r in results)
+
+
+def _search_tavily(query: str) -> str:
+    import requests
+    from tavily import TavilyClient
+    session = requests.Session()
+    client = TavilyClient(api_key=TAVILY_API_KEY, session=session)
+    result = client.search(query=query, search_depth="basic", max_results=5, include_answer=True)
+    answer = result.get("answer", "")
+    sources = "\n".join(
+        f"- {r['url']}: {r['content'][:200]}" for r in result.get("results", [])[:3]
+    )
+    return f"{answer}\n\nSources:\n{sources}" if answer else sources
+
+
+def web_search(query: str) -> str:
     """Execute the search and return a clean text summary."""
     try:
-        result = _client.search(
-            query=query,
-            search_depth="basic",
-            max_results=5,
-            include_answer=True,
-        )
-         # Return the AI-generated answer + top source URLs
-        answer = result.get("answer","")
-        sources = "\n".join(
-            f"- {r['url']}: {r['content'][:200]}"
-            for r in result.get("results",[])[:3]
-        )
-        return f"{answer}\n\nSources:\n{sources}" if answer else sources
+        if SEARCH_PROVIDER == "tavily":
+            return _search_tavily(query)
+        return _search_ddgs(query)
     except Exception as e:
         return f"Search failed: {e}"

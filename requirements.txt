@@ -1,0 +1,13 @@
+# LLM
+google-generativeai==0.8.6
+
+# Search providers
+ddgs==9.14.4
+tavily-python==0.7.25
+
+# SSL / networking
+truststore==0.10.4
+requests==2.34.2
+
+# Config
+python-dotenv==1.2.2
