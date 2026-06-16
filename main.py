@@ -1,11 +1,15 @@
 from chat.service import ChatService
 from agent.react_agent import run_agent
-import sys
+from security.sanitiser import demo_injection_attack
+demo_injection_attack()
+
 
 PROJECT_ID = "research_agent"
 
 
 def main():
+    # ── Show injection demo once at startup ───────────────────────────────
+    demo_injection_attack()
     # ── Session handling ──────────────────────────────────────────────────
     chat = ChatService(project_id=PROJECT_ID)
     print(f"\nResearch Agent — Phase 1")
@@ -37,9 +41,16 @@ def main():
         chat.save_message("user", user_input)
 
         # ── Load history and run agent ────────────────────────────────────
-        history = chat.load_history()
+        # history = chat.load_history()
         # Pass history excluding the last message (that's the current query)
-        response = run_agent(user_input, history[:-1])
+        # response = run_agent(user_input, history[:-1])
+
+        response = run_agent(
+        user_query=user_input,
+        history=chat.build_context(),   # now uses windowed context
+        session_id=chat.get_session_id(),
+        project_id=PROJECT_ID
+        )
 
         # ── Save and print response ───────────────────────────────────────
         chat.save_message("assistant", response)

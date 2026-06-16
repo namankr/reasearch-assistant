@@ -99,8 +99,7 @@ Thumbs.db
 .dockerignore
 
 # ── Agent ─────────────────────────────────────────────────────────────────────
-agent_memory.db
-
+agent_memory.dbchroma_db/
 # ── HTML ──────────────────────────────────────────────────────────────────────
 interview-prep.html
 
@@ -108,3 +107,4 @@ interview-prep.html
 *.tmp
 *.bak
 *.orig
+concepts.txt

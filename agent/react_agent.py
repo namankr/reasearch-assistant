@@ -3,6 +3,8 @@
 import google.generativeai as genai
 from google.generativeai.types import FunctionDeclaration, Tool
 from google.generativeai import protos
+from memory.vector_store import VectorMemory
+from security.sanitiser import sanitise
 
 from config import GEMINI_API_KEY, LLM_MODEL, MAX_ITERATIONS
 from tools.web_search import web_search, WEB_SEARCH_TOOL
@@ -10,10 +12,22 @@ from agent.prompts import SYSTEM_PROMPT
 
 genai.configure(api_key=GEMINI_API_KEY)
 
+# Initialise memory once (module level)
+_memory: dict[str, VectorMemory] = {}
+
 # ── Tool registry — add more tools here later ─────────────────────────────
 TOOL_REGISTRY ={
     "web_search":web_search
 }
+
+
+# ── get Memory ─────────────────────────────
+def get_memory(project_id: str)-> VectorMemory:
+    if project_id not in _memory:
+        _memory[project_id] = VectorMemory(project_id)
+    return _memory[project_id]
+
+
 
 # ── Build Gemini tool schema ──────────────────────────────────────────────
 def _build_gemini_tools():
@@ -34,13 +48,23 @@ def _to_gemini_history(history: list[dict]) -> list:
     return gemini_msgs
 
 # ── Main agent function ───────────────────────────────────────────────────
-def run_agent(user_query: str, history:list[dict]) -> str:
-    """
-    Run one turn of the ReAct loop.
+def run_agent(user_query: str, history:list[dict], session_id: str, project_id: str) -> str:
+    # """
+    # Run one turn of the ReAct loop.
 
-    history  — list of {role, content} dicts from ChatService
-    returns  — the agent's final text answer
+    # history  — list of {role, content} dicts from ChatService
+    # returns  — the agent's final text answer
+    # """
     """
+    Phase 2 ReAct loop — now with:
+    - RAG memory retrieval before each LLM call
+    - Tool result sanitisation (injection defence)
+    - Tool results stored in vector memory
+    """
+    memory = get_memory(project_id)
+# ── Retrieve relevant past findings ───────────────────────────────────
+    past_context = memory.retrieve(user_query, session_id)
+
     model = genai.GenerativeModel(
         model_name=LLM_MODEL,
         system_instruction=SYSTEM_PROMPT,
@@ -48,6 +72,16 @@ def run_agent(user_query: str, history:list[dict]) -> str:
     )
 
     gemini_history = _to_gemini_history(history)
+
+    if past_context:
+        # Prepend retrieved memory as context
+        gemini_history = [{
+            "role": "user",
+            "parts": [f"[Relevant past findings]\n{past_context}"]
+        }, {
+            "role": "model",
+            "parts": ["Understood, I'll use these past findings to inform my answer."]
+        }] + gemini_history       
 
     chat = model.start_chat(history=gemini_history)
     
@@ -71,8 +105,14 @@ def run_agent(user_query: str, history:list[dict]) -> str:
                 tool_result = TOOL_REGISTRY[fn_name](**fn_args)
             else:
                 tool_result = f"Unknown tool: {fn_name}"
+            
+            # ── Sanitise before it enters the prompt ──────────────────────
+            clean_result = sanitise(tool_result, source=fn_args.get("query", fn_name))
 
-            print(f"[Agent] Tool returned {len(tool_result)} chars")
+            # ── Store in vector memory for future retrieval ───────────────
+            memory.store(clean_result, source=fn_name, session_id=session_id)
+
+            print(f"[Agent] Tool returned {len(clean_result)} chars")
 
             # Feed the tool result back as a function response
             message = [
