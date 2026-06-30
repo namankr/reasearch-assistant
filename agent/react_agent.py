@@ -1,8 +1,7 @@
 # to do : Step 6: agent/react_agent.py — the ReAct loop
 
-import google.generativeai as genai
-from google.generativeai.types import FunctionDeclaration, Tool
-from google.generativeai import protos
+from google import genai
+from google.genai import types
 from memory.vector_store import VectorMemory
 from security.sanitiser import sanitise
 
@@ -10,7 +9,7 @@ from config import GEMINI_API_KEY, LLM_MODEL, MAX_ITERATIONS
 from tools.web_search import web_search, WEB_SEARCH_TOOL
 from agent.prompts import SYSTEM_PROMPT
 
-genai.configure(api_key=GEMINI_API_KEY)
+_client = genai.Client(api_key=GEMINI_API_KEY)
 
 # Initialise memory once (module level)
 _memory: dict[str, VectorMemory] = {}
@@ -31,12 +30,21 @@ def get_memory(project_id: str)-> VectorMemory:
 
 # ── Build Gemini tool schema ──────────────────────────────────────────────
 def _build_gemini_tools():
-    decl = FunctionDeclaration(
-        name = WEB_SEARCH_TOOL["name"],
+    decl = types.FunctionDeclaration(
+        name=WEB_SEARCH_TOOL["name"],
         description=WEB_SEARCH_TOOL["description"],
-        parameters=WEB_SEARCH_TOOL["parameters"]
+        parameters=types.Schema(
+            type=types.Type.OBJECT,
+            properties={
+                "query": types.Schema(
+                    type=types.Type.STRING,
+                    description="The search query — be specific and concise."
+                )
+            },
+            required=["query"]
+        )
     )
-    return [Tool(function_declarations=[decl])]
+    return [types.Tool(function_declarations=[decl])]
 
 # ── History format conversion ─────────────────────────────────────────────
 def _to_gemini_history(history: list[dict]) -> list:
@@ -44,11 +52,11 @@ def _to_gemini_history(history: list[dict]) -> list:
     gemini_msgs = []
     for msg in history:
         role = "user" if msg["role"] == "user" else "model"
-        gemini_msgs.append({"role": role, "parts": [msg["content"]]})
+        gemini_msgs.append(types.Content(role=role, parts=[types.Part(text=msg["content"])]))
     return gemini_msgs
 
 # ── Main agent function ───────────────────────────────────────────────────
-def run_agent(user_query: str, history:list[dict], session_id: str, project_id: str) -> str:
+def run_agent(user_query: str, history:list[dict], session_id: str, project_id: str, model_name: str = None) -> str:
     # """
     # Run one turn of the ReAct loop.
 
@@ -65,25 +73,25 @@ def run_agent(user_query: str, history:list[dict], session_id: str, project_id: 
 # ── Retrieve relevant past findings ───────────────────────────────────
     past_context = memory.retrieve(user_query, session_id)
 
-    model = genai.GenerativeModel(
-        model_name=LLM_MODEL,
-        system_instruction=SYSTEM_PROMPT,
-        tools= _build_gemini_tools()
-    )
+    active_model = model_name or LLM_MODEL
 
     gemini_history = _to_gemini_history(history)
 
     if past_context:
         # Prepend retrieved memory as context
-        gemini_history = [{
-            "role": "user",
-            "parts": [f"[Relevant past findings]\n{past_context}"]
-        }, {
-            "role": "model",
-            "parts": ["Understood, I'll use these past findings to inform my answer."]
-        }] + gemini_history       
+        gemini_history = [
+            types.Content(role="user", parts=[types.Part(text=f"[Relevant past findings]\n{past_context}")]),
+            types.Content(role="model", parts=[types.Part(text="Understood, I'll use these past findings to inform my answer.")])
+        ] + gemini_history
 
-    chat = model.start_chat(history=gemini_history)
+    chat = _client.chats.create(
+        model=active_model,
+        config=types.GenerateContentConfig(
+            system_instruction=SYSTEM_PROMPT,
+            tools=_build_gemini_tools()
+        ),
+        history=gemini_history
+    )
     
     print(f"\n[Agent] Thinking about: {user_query}")
 
@@ -115,14 +123,12 @@ def run_agent(user_query: str, history:list[dict], session_id: str, project_id: 
             print(f"[Agent] Tool returned {len(clean_result)} chars")
 
             # Feed the tool result back as a function response
-            message = [
-                protos.Part(
-                    function_response=protos.FunctionResponse(
-                        name=fn_name,
-                        response={"result": tool_result}
-                    )
+            message = types.Part(
+                function_response=types.FunctionResponse(
+                    name=fn_name,
+                    response={"result": tool_result}
                 )
-            ]
+            )
 
         # ── Text response → we're done ────────────────────────────────────
         else:

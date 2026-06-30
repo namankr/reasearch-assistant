@@ -21,3 +21,19 @@ MAX_HISTORY_TURNS = 10                  # sliding window size
 MAX_CONTEXT_TOKENS = 8000              # leave headroom below Gemini's limit
 MEMORY_TOP_K = 3                        # how many chunks to retrieve from vector DB
 CHUNK_SIZE = 400                        # chars per memory chunk
+
+
+# Phase 3 — Cache settings
+REDIS_HOST = "localhost"
+REDIS_PORT = 6379
+REDIS_TTL_SECONDS = 3600          # 1 hour — tweak per query type later
+CACHE_SIMILARITY_THRESHOLD = 0.85 # cosine score above this = cache hit
+L1_MAX_SIZE = 100                  # max entries in in-memory dict
+
+# Phase 4 — Router settings
+GEMINI_FLASH_MODEL = "gemini-2.0-flash"
+GEMINI_PRO_MODEL   = "gemini-1.5-pro"
+
+# Approximate cost per 1M tokens (USD) — update if Gemini pricing changes
+FLASH_COST_PER_1M  = 0.075
+PRO_COST_PER_1M    = 3.50
