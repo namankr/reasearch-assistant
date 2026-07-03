@@ -1,13 +1,30 @@
 # LLM
-google-generativeai==0.8.6
+google-genai>=1.0.0
 
 # Search providers
 ddgs==9.14.4
 tavily-python==0.7.25
 
 # SSL / networking
-truststore==0.10.4
+truststore==0.10.0
 requests==2.34.2
 
-# Config
+# Semantic cache (L2)
+redis==5.2.1
+numpy==2.2.1
+sentence-transformers==3.3.1
+
+# Vector memory (L2 long-term)
+chromadb>=0.6.0
+
+# Token counting (context window management)
+tiktoken>=0.7.0
+
+# LLM retry / back-off
+tenacity>=8.2.0
+
+# Config / env
 python-dotenv==1.2.2
+
+# Groq fallback LLM
+groq>=0.9.0

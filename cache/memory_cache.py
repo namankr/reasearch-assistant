@@ -11,12 +11,13 @@ class MemoryCache:
     def __init__(self):
         self._store: OrderedDict[str, str] = OrderedDict()
 
-    def _key(self, query:str, model:str):
-        # Include model in key — Flash and Pro may give different answers
-        return f"{model}::{query.strip().lower()}"
+    def _key(self, query:str):
+        # Cache is keyed on the normalized query only — independent of which
+        # model answered it, so routing decisions can't fragment the cache.
+        return query.strip().lower()
     
-    def get(self, query: str, model: str) -> str | None:
-        key = self._key(query, model)
+    def get(self, query: str) -> str | None:
+        key = self._key(query)
         if key in self._store:
             # Move to end (most recently used)
             self._store.move_to_end(key)
@@ -24,8 +25,8 @@ class MemoryCache:
             return self._store[key]
         return None
 
-    def set(self, query: str, model: str, answer: str):
-        key = self._key(query, model)
+    def set(self, query: str, answer: str):
+        key = self._key(query)
         self._store[key] = answer
         self._store.move_to_end(key)
         # Evict oldest if over size limit

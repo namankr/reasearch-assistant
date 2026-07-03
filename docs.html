@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Research Assistant — Engineering Docs</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --accent: #6c8ef7;
+      --accent2: #a78bfa;
+      --green: #34d399;
+      --yellow: #fbbf24;
+      --red: #f87171;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #2d3148;
+      --code-bg: #141720;
+      --radius: 10px;
+      --font-mono: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; line-height: 1.7; }
+
+    /* ── Layout ── */
+    .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+    nav { background: var(--surface); border-right: 1px solid var(--border); padding: 24px 16px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+    nav h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 12px; padding-left: 8px; }
+    nav a { display: block; padding: 7px 12px; border-radius: 6px; color: var(--muted); text-decoration: none; font-size: 14px; transition: all .15s; }
+    nav a:hover, nav a.active { background: var(--surface2); color: var(--text); }
+    nav .nav-section { margin-bottom: 20px; }
+    main { padding: 48px 56px; max-width: 1100px; }
+
+    /* ── Typography ── */
+    h1 { font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+    h2 { font-size: 1.4rem; font-weight: 600; color: var(--accent); margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    h3 { font-size: 1.1rem; font-weight: 600; color: var(--accent2); margin: 28px 0 10px; }
+    h4 { font-size: .95rem; color: var(--yellow); margin: 18px 0 8px; }
+    p { color: var(--text); margin-bottom: 12px; font-size: 15px; }
+    ul, ol { padding-left: 24px; margin-bottom: 12px; font-size: 15px; }
+    li { margin-bottom: 6px; }
+    strong { color: var(--accent); }
+    code { background: var(--code-bg); color: var(--green); font-family: var(--font-mono); font-size: 13px; padding: 2px 6px; border-radius: 4px; }
+    pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; overflow-x: auto; margin: 12px 0 20px; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; color: var(--text); }
+    pre .kw { color: #c792ea; } pre .str { color: #c3e88d; } pre .cm { color: #546e7a; font-style: italic; }
+
+    /* ── Cards ── */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 16px; }
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .phase-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+    .phase-card .phase-badge { display: inline-block; background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 20px; margin-bottom: 10px; letter-spacing: .05em; }
+    .phase-card h3 { margin-top: 0; }
+
+    /* ── Tables ── */
+    table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 14px; }
+    th { background: var(--surface2); color: var(--accent); text-align: left; padding: 10px 14px; border-bottom: 2px solid var(--border); }
+    td { padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
+    tr:hover td { background: var(--surface); }
+
+    /* ── FAQ ── */
+    .faq-item { border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
+    .faq-q { background: var(--surface); padding: 16px 20px; cursor: pointer; font-weight: 600; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+    .faq-q:hover { background: var(--surface2); }
+    .faq-q span.arrow { color: var(--accent); transition: transform .2s; font-size: 18px; }
+    .faq-q.open span.arrow { transform: rotate(90deg); }
+    .faq-a { display: none; padding: 16px 20px; background: var(--code-bg); border-top: 1px solid var(--border); font-size: 14.5px; }
+    .faq-a.visible { display: block; }
+
+    /* ── Interview Q&A ── */
+    .qa-item { background: var(--surface); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; padding: 18px 22px; margin-bottom: 18px; }
+    .qa-q { font-weight: 700; color: var(--accent2); margin-bottom: 10px; font-size: 15px; }
+    .qa-a { font-size: 14.5px; color: var(--text); }
+    .qa-a ul { margin-top: 8px; }
+
+    /* ── Badges ── */
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin: 2px; }
+    .badge-blue { background: #1e3a5f; color: var(--accent); }
+    .badge-green { background: #064e3b; color: var(--green); }
+    .badge-yellow { background: #451a03; color: var(--yellow); }
+    .badge-purple { background: #2e1065; color: var(--accent2); }
+
+    /* ── Architecture diagram ── */
+    .arch-flow { display: flex; flex-direction: column; gap: 0; align-items: flex-start; margin: 16px 0 24px; }
+    .arch-step { display: flex; align-items: center; gap: 16px; }
+    .arch-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 20px; font-size: 14px; min-width: 260px; }
+    .arch-box.highlight { border-color: var(--accent); color: var(--accent); }
+    .arch-arrow { color: var(--muted); font-size: 22px; margin-left: 28px; }
+
+    /* ── Hero ── */
+    .hero { margin-bottom: 40px; }
+    .hero p { color: var(--muted); font-size: 16px; max-width: 700px; }
+    .tag-row { margin-top: 16px; }
+
+    @media (max-width: 800px) {
+      .layout { grid-template-columns: 1fr; }
+      nav { display: none; }
+      main { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ────────────────── SIDEBAR NAV ────────────────── -->
+<nav>
+  <div class="nav-section">
+    <h2>Overview</h2>
+    <a href="#overview">Architecture</a>
+    <a href="#phases">Phases</a>
+    <a href="#structure">File Structure</a>
+    <a href="#config">Configuration</a>
+    <a href="#deps">Dependencies</a>
+  </div>
+  <div class="nav-section">
+    <h2>Deep Dives</h2>
+    <a href="#react">ReAct Agent</a>
+    <a href="#memory">Vector Memory</a>
+    <a href="#cache">Caching</a>
+    <a href="#router">Model Router</a>
+    <a href="#security">Security</a>
+  </div>
+  <div class="nav-section">
+    <h2>FAQ</h2>
+    <a href="#faq">Design Decisions</a>
+  </div>
+  <div class="nav-section">
+    <h2>Interview Prep</h2>
+    <a href="#interview">L3 Q&amp;A</a>
+  </div>
+</nav>
+
+<!-- ────────────────── MAIN CONTENT ────────────────── -->
+<main>
+
+  <!-- ── HERO ── -->
+  <section class="hero" id="overview">
+    <h1>Research Assistant Agent</h1>
+    <p>A production-grade, multi-phase AI research assistant built on Google Gemini. Combines a ReAct agent, persistent vector memory, two-layer caching, intelligent model routing, and prompt injection defense.</p>
+    <div class="tag-row">
+      <span class="badge badge-blue">Python 3.11+</span>
+      <span class="badge badge-green">Gemini 2.5</span>
+      <span class="badge badge-purple">ChromaDB</span>
+      <span class="badge badge-yellow">Redis</span>
+      <span class="badge badge-blue">sentence-transformers</span>
+      <span class="badge badge-green">ReAct Loop</span>
+    </div>
+  </section>
+
+  <!-- ── ARCHITECTURE ── -->
+  <h2>System Architecture</h2>
+  <div class="arch-flow">
+    <div class="arch-step"><div class="arch-box highlight">User Input</div></div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-step"><div class="arch-box">Security — Prompt injection scan</div></div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-step"><div class="arch-box">Phase 4 — Router → classify complexity → pick model</div></div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-step"><div class="arch-box">Phase 3 — L1 Cache (exact match) → L2 Cache (semantic)</div></div>
+    <div class="arch-arrow">↓ miss</div>
+    <div class="arch-step"><div class="arch-box">Phase 2 — Vector memory retrieval (ChromaDB)</div></div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-step"><div class="arch-box">Phase 1 — ReAct loop → web_search tool → Gemini</div></div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-step"><div class="arch-box highlight">Response → Cache store → Cost log → Output</div></div>
+  </div>
+
+  <!-- ── PHASES ── -->
+  <h2 id="phases">Phases</h2>
+  <div class="card-grid">
+    <div class="phase-card">
+      <span class="phase-badge">PHASE 1</span>
+      <h3>ReAct Agent</h3>
+      <p>Gemini function-calling with iterative Think→Act→Observe loop. Supports DuckDuckGo and Tavily search backends. Capped at <code>MAX_ITERATIONS</code> with 429 retry back-off.</p>
+    </div>
+    <div class="phase-card">
+      <span class="phase-badge">PHASE 2</span>
+      <h3>Vector Memory</h3>
+      <p>ChromaDB persistent vector store. Tool results are chunked (400 words, 20% overlap) and embedded with <code>all-MiniLM-L6-v2</code>. Session-scoped retrieval prevents cross-project bleed.</p>
+    </div>
+    <div class="phase-card">
+      <span class="phase-badge">PHASE 3</span>
+      <h3>Two-Layer Cache</h3>
+      <p>L1 in-memory exact LRU cache. L2 Redis semantic cache with cosine similarity. Cache key is query-only — decoupled from routing to prevent key fragmentation.</p>
+    </div>
+    <div class="phase-card">
+      <span class="phase-badge">PHASE 4</span>
+      <h3>Model Router</h3>
+      <p>LLM classifier labels queries simple/moderate/complex. Routes complex queries to Gemini Pro, others to Flash Lite. SQLite cost tracker logs USD per call.</p>
+    </div>
+  </div>
+
+  <!-- ── FILE STRUCTURE ── -->
+  <h2 id="structure">File Structure</h2>
+  <pre>
+├── main.py               <span class="cm"># REPL entry point — wires all phases</span>
+├── config.py             <span class="cm"># All tuneable constants</span>
+├── requirements.txt
+│
+├── agent/
+│   ├── react_agent.py    <span class="cm"># ReAct loop, Gemini chat, tool dispatch, retry</span>
+│   └── prompts.py        <span class="cm"># System prompt</span>
+│
+├── cache/
+│   ├── cache_manager.py  <span class="cm"># Orchestrates L1 + L2</span>
+│   ├── memory_cache.py   <span class="cm"># L1 — OrderedDict LRU</span>
+│   └── redis_cache.py    <span class="cm"># L2 — Redis + cosine similarity</span>
+│
+├── chat/
+│   └── service.py        <span class="cm"># SQLite session + sliding-window history</span>
+│
+├── memory/
+│   ├── vector_store.py   <span class="cm"># ChromaDB wrapper — store + retrieve</span>
+│   └── chunker.py        <span class="cm"># Text splitter with 20% overlap</span>
+│
+├── router/
+│   ├── model_router.py   <span class="cm"># Routing table (complexity → model)</span>
+│   ├── classifier.py     <span class="cm"># LLM complexity classifier (Gemini / Groq)</span>
+│   └── cost_tracker.py   <span class="cm"># SQLite cost log + summary</span>
+│
+├── security/
+│   └── sanitiser.py      <span class="cm"># Regex injection detection + redaction</span>
+│
+└── tools/
+    └── web_search.py     <span class="cm"># DuckDuckGo / Tavily search tool</span></pre>
+
+  <!-- ── CONFIG ── -->
+  <h2 id="config">Configuration Reference</h2>
+  <table>
+    <thead><tr><th>Variable</th><th>Default</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>MAX_ITERATIONS</code></td><td>4</td><td>ReAct loop safety cap — max tool calls before returning</td></tr>
+      <tr><td><code>ENABLE_ROUTER</code></td><td>True</td><td>Route complex queries to Pro; False → always Flash</td></tr>
+      <tr><td><code>CACHE_SIMILARITY_THRESHOLD</code></td><td>0.85</td><td>Cosine score needed for an L2 semantic hit</td></tr>
+      <tr><td><code>L1_MAX_SIZE</code></td><td>100</td><td>Max entries in in-memory L1 cache (LRU eviction)</td></tr>
+      <tr><td><code>REDIS_TTL_SECONDS</code></td><td>3600</td><td>L2 cache entry time-to-live (1 hour)</td></tr>
+      <tr><td><code>MEMORY_TOP_K</code></td><td>3</td><td>Number of memory chunks retrieved per query</td></tr>
+      <tr><td><code>CHUNK_SIZE</code></td><td>400</td><td>Words per memory chunk</td></tr>
+      <tr><td><code>MAX_CONTEXT_TOKENS</code></td><td>8000</td><td>Context window cap (below Gemini limit)</td></tr>
+      <tr><td><code>CLASSIFIER_PROVIDER</code></td><td>gemini</td><td>Which LLM classifies complexity — gemini or groq</td></tr>
+      <tr><td><code>RETRY_MAX_ATTEMPTS</code></td><td>4</td><td>Max retries on Gemini 429 rate-limit errors</td></tr>
+      <tr><td><code>RETRY_BASE_DELAY</code></td><td>10s</td><td>Base delay for exponential back-off</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ── DEPENDENCIES ── -->
+  <h2 id="deps">Dependencies</h2>
+  <table>
+    <thead><tr><th>Package</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td><code>google-genai</code></td><td>Gemini LLM + function calling API</td></tr>
+      <tr><td><code>groq</code></td><td>Fallback/alternative classifier LLM (Llama 3.3)</td></tr>
+      <tr><td><code>chromadb</code></td><td>Persistent local vector store for long-term memory</td></tr>
+      <tr><td><code>sentence-transformers</code></td><td>Local embedding model (all-MiniLM-L6-v2)</td></tr>
+      <tr><td><code>redis</code></td><td>L2 semantic cache backend</td></tr>
+      <tr><td><code>numpy</code></td><td>Cosine similarity computation in L2 cache</td></tr>
+      <tr><td><code>tiktoken</code></td><td>Token counting for context window management</td></tr>
+      <tr><td><code>tenacity</code></td><td>Retry logic with exponential back-off for 429 errors</td></tr>
+      <tr><td><code>ddgs</code></td><td>DuckDuckGo search — free, no API key needed</td></tr>
+      <tr><td><code>tavily-python</code></td><td>Tavily search — structured, richer results</td></tr>
+      <tr><td><code>truststore</code></td><td>Windows native SSL cert store (Zscaler-compatible)</td></tr>
+      <tr><td><code>python-dotenv</code></td><td>Loads .env variables at startup</td></tr>
+      <tr><td><code>sqlite3</code></td><td>Chat history + cost log (Python stdlib)</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ── DEEP DIVE: REACT ── -->
+  <h2 id="react">Deep Dive — ReAct Agent</h2>
+  <p>The agent follows the <strong>ReAct (Reason + Act)</strong> pattern: it reasons about what to do, calls a tool, observes the result, and repeats until it can give a final answer.</p>
+  <pre>
+<span class="cm"># Simplified core loop</span>
+<span class="kw">for</span> iteration <span class="kw">in</span> range(MAX_ITERATIONS):
+    response = gemini_chat.send(message)
+    <span class="kw">if</span> response.has_tool_call():
+        result = web_search(**tool_args)
+        clean  = sanitise(result)          <span class="cm"># injection guard</span>
+        memory.store(clean, session_id)    <span class="cm"># persist to ChromaDB</span>
+        message = FunctionResponse(result=clean)
+    <span class="kw">else</span>:
+        <span class="kw">return</span> response.text              <span class="cm"># final answer</span></pre>
+  <p>Retry logic wraps the Gemini call with <code>tenacity</code> — on a 429 it backs off with random exponential delay up to <code>RETRY_MAX_ATTEMPTS</code> attempts.</p>
+
+  <!-- ── DEEP DIVE: MEMORY ── -->
+  <h2 id="memory">Deep Dive — Vector Memory</h2>
+  <p>Each tool result is chunked and embedded before storage. On the next query, the top-K most semantically similar chunks are prepended as context.</p>
+  <pre>
+<span class="cm"># Retrieval flow</span>
+past_context = memory.retrieve(query, session_id)  <span class="cm"># cosine search</span>
+gemini_history = [
+    Content(role=<span class="str">"user"</span>,  text=f<span class="str">"[Relevant past findings]\n{past_context}"</span>),
+    Content(role=<span class="str">"model"</span>, text=<span class="str">"Understood, I'll use these..."</span>)
+] + conversation_history</pre>
+  <p>Chunks use 20% overlap (<code>step = CHUNK_SIZE * 0.8</code>) so facts near chunk boundaries aren't split in two.</p>
+
+  <!-- ── DEEP DIVE: CACHE ── -->
+  <h2 id="cache">Deep Dive — Two-Layer Cache</h2>
+  <h3>L1 — In-memory LRU</h3>
+  <p>Built on <code>OrderedDict</code>. Lookup is O(1). Key is <code>query.strip().lower()</code>. Evicts the oldest entry when <code>L1_MAX_SIZE</code> is reached. <strong>Wiped on process restart</strong> — intended for same-session deduplication.</p>
+  <h3>L2 — Redis Semantic Cache</h3>
+  <p>Stores <code>{query, embedding, answer}</code> as JSON in Redis with a TTL. On lookup, it scans all entries, computes cosine similarity between the query embedding and each stored embedding, and returns the best match if it exceeds <code>CACHE_SIMILARITY_THRESHOLD</code>.</p>
+  <pre>
+score = dot(query_vec, stored_vec) / (norm(query_vec) * norm(stored_vec))
+<span class="kw">if</span> score >= CACHE_SIMILARITY_THRESHOLD:
+    promote_to_L1(query, answer)
+    <span class="kw">return</span> answer</pre>
+  <p>An L2 hit also promotes the result to L1, so the next identical query is served instantly from memory.</p>
+  <p><strong>Key design decision</strong>: cache key is query-only, not <code>model::query</code>. This prevents key fragmentation when the router picks different models for semantically identical queries on different runs.</p>
+
+  <!-- ── DEEP DIVE: ROUTER ── -->
+  <h2 id="router">Deep Dive — Model Router</h2>
+  <p>The router makes a cheap LLM call to classify query complexity before routing to the appropriate model — trading a small classifier cost to avoid paying Pro rates on simple questions.</p>
+  <table>
+    <thead><tr><th>Complexity</th><th>Model</th><th>When</th></tr></thead>
+    <tbody>
+      <tr><td><code>simple</code></td><td>Gemini Flash Lite</td><td>Factual lookup, definition, quick fact</td></tr>
+      <tr><td><code>moderate</code></td><td>Gemini Flash Lite</td><td>Explanation, comparison, few reasoning steps</td></tr>
+      <tr><td><code>complex</code></td><td>Gemini Pro</td><td>Deep research, multi-step synthesis, analysis</td></tr>
+    </tbody>
+  </table>
+  <p>The classifier falls back to <code>moderate</code> on any error — never accidentally sends to the expensive Pro model.</p>
+
+  <!-- ── DEEP DIVE: SECURITY ── -->
+  <h2 id="security">Deep Dive — Security (Prompt Injection)</h2>
+  <p>Web search results are untrusted — any site could embed instructions like <em>"Ignore all previous instructions"</em>. Before a tool result is fed back to Gemini or stored in memory, it passes through <code>sanitise()</code>.</p>
+  <pre>
+INJECTION_PATTERNS = [
+    <span class="str">r"ignore (all |previous )?(instructions?|prompts?)"</span>,
+    <span class="str">r"you are now"</span>,
+    <span class="str">r"jailbreak"</span>,
+    <span class="str">r"DAN\s*(mode)?"</span>,
+    <span class="cm"># ... 13 patterns total</span>
+]
+<span class="cm"># Matched text is replaced with [REDACTED] — agent never sees raw injection</span></pre>
+  <p>This is a <strong>defense-in-depth</strong> measure. It does not guarantee full safety but eliminates the most common pattern-based attacks.</p>
+
+  <!-- ── FAQ ── -->
+  <h2 id="faq">FAQ — Design Decisions</h2>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Why ChromaDB for vector memory? <span class="arrow">▶</span></div>
+    <div class="faq-a">
+      <p><strong>ChromaDB</strong> was chosen because it runs fully locally (no server required), persists to disk, and has a native Python API. For a single-developer research agent that needs embeddings to survive process restarts, it hits the sweet spot between zero-setup simplicity and production persistence.</p>
+      <p>Alternatives considered: <strong>FAISS</strong> is faster for huge corpora but only in-memory — you'd need to serialize/deserialize the index manually. <strong>Pinecone/Weaviate</strong> are cloud-managed and introduce network latency and cost. <strong>pgvector</strong> requires a running Postgres instance. ChromaDB requires none of this and supports metadata filtering (used here for session isolation).</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Why sentence-transformers (all-MiniLM-L6-v2)? <span class="arrow">▶</span></div>
+    <div class="faq-a">
+      <p><strong>all-MiniLM-L6-v2</strong> is a 22M-parameter model that runs fully locally, needs no API key, and produces 384-dimensional embeddings in ~5ms on CPU. For a cache and memory layer that runs on every query, avoiding an external embedding API call eliminates latency, cost, and a failure mode.</p>
+      <p>It scores 58+ on MTEB semantic similarity benchmarks — more than sufficient for detecting paraphrase similarity at a 0.85 threshold. <strong>OpenAI's text-embedding-ada-002</strong> scores higher but costs ~$0.0001/query and adds network latency. For this workload, the local model wins on cost and reliability.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Why two cache layers instead of just Redis? <span class="arrow">▶</span></div>
+    <div class="faq-a">
+      <p>L1 (in-memory) serves identical repeated queries in microseconds — no network hop, no embedding computation, no JSON parsing. For power-users who repeat the same query within a session (common when iterating on research), L1 eliminates all latency overhead.</p>
+      <p>L2 (Redis) handles paraphrases and survives process restarts — something L1 can't do. The promotion mechanism (L2 hit → also write to L1) means the second occurrence of any query, however it was phrased the first time, is served from L1 going forward.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Why decouple the cache key from the routed model? <span class="arrow">▶</span></div>
+    <div class="faq-a">
+      <p>The original implementation keyed the cache as <code>model::query</code>. The problem: the complexity classifier is an LLM call and is non-deterministic. The same query could be labeled <code>moderate</code> → Flash on turn 1, then <code>complex</code> → Pro on turn 2, producing different keys — a guaranteed cache miss even for identical queries.</p>
+      <p>By keying on query alone, the cache is stable regardless of routing decisions. The tradeoff (Flash and Pro might give slightly different answers) is acceptable: the cache stores the first real answer and serves it on future hits, which is the expected behavior for a research cache.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Why SQLite for chat history and cost tracking? <span class="arrow">▶</span></div>
+    <div class="faq-a">
+      <p>SQLite requires zero setup, has no external dependency, and gives full SQL query capability for cost aggregation. For a local research agent, it's the right fit — ACID compliant, persistent, and ships in Python's stdlib.</p>
+      <p>PostgreSQL or MySQL would be overkill: no concurrency requirements, no multi-process writes, no need for a network-accessible DB. SQLite's write lock is sufficient for a single-user REPL.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Why use a separate LLM call to classify query complexity? <span class="arrow">▶</span></div>
+    <div class="faq-a">
+      <p>Rule-based routing (keyword matching, token count) is brittle and requires ongoing maintenance. An LLM classifier understands semantic intent — "what is gravity" is simple, "compare gravitational wave detection methods across 3 observatories" is complex, even though token counts may be similar.</p>
+      <p>The cost is minimal: classification uses Gemini Flash Lite with a tiny prompt (~50 tokens), fractions of a cent. The benefit is significant: avoiding Pro rates on 80%+ of queries that are simple or moderate.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Why is prompt injection defense applied to tool results, not user input? <span class="arrow">▶</span></div>
+    <div class="faq-a">
+      <p>User input is trusted — the user controls what they type. The attack surface is the <strong>tool's output</strong>: a malicious website can embed injection text in its content, which then gets passed back to Gemini as a "trusted" function response. Sanitising at the tool boundary is the correct defense layer.</p>
+      <p>This is the <strong>indirect prompt injection</strong> threat model. Applying the same filter to user input would be counterproductive — it would block legitimate queries about jailbreaking as a topic.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Why chunk with 20% overlap? <span class="arrow">▶</span></div>
+    <div class="faq-a">
+      <p>If a sentence spans a chunk boundary, both halves end up in different chunks — neither chunk contains the full fact, and retrieval may miss it entirely. A 20% overlap ensures that context near boundaries appears in at least two chunks, so semantic search can find it regardless of where the split falls.</p>
+      <p>The tradeoff is slightly more storage and some duplicate content in retrieval results. For 400-word chunks at 20% overlap, this is 80 words of duplication per boundary — negligible.</p>
+    </div>
+  </div>
+
+  <!-- ── INTERVIEW Q&A ── -->
+  <h2 id="interview">L3 Engineer Interview Questions &amp; Answers</h2>
+  <p style="color:var(--muted); margin-bottom:24px;">Questions an AI infrastructure or ML engineering interviewer would ask about a system like this — and answers at the expected depth.</p>
+
+  <h3>ReAct &amp; Agentic Systems</h3>
+
+  <div class="qa-item">
+    <div class="qa-q">Q1. Explain the ReAct pattern. How does it differ from chain-of-thought prompting?</div>
+    <div class="qa-a">
+      <p><strong>Chain-of-thought (CoT)</strong> prompts the model to reason step-by-step in its output, but all reasoning is internal — no external data is retrieved. <strong>ReAct</strong> interleaves reasoning with <em>actions</em> (tool calls) and <em>observations</em> (tool results), allowing the model to ground its reasoning in real data.</p>
+      <ul>
+        <li>CoT: Think → Think → Think → Answer (all in one forward pass)</li>
+        <li>ReAct: Think → Act (search) → Observe → Think → Act → Observe → Answer (multi-turn)</li>
+      </ul>
+      <p>ReAct is more expensive (multiple LLM calls) but dramatically more accurate for factual, current, or domain-specific queries where the model's parametric knowledge is insufficient.</p>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q">Q2. What are the failure modes of a ReAct loop, and how does this system guard against them?</div>
+    <div class="qa-a">
+      <ul>
+        <li><strong>Infinite loop</strong>: The model keeps calling tools without converging. Guarded by <code>MAX_ITERATIONS</code> (4) — after N iterations without a text response, return a safe fallback string.</li>
+        <li><strong>Tool hallucination</strong>: Model calls a non-existent tool. Guarded by <code>TOOL_REGISTRY</code> check — unknown tool names return an error string, not an exception.</li>
+        <li><strong>Prompt injection via tool output</strong>: Malicious search result hijacks the agent. Guarded by <code>sanitise()</code> applied before the tool result is fed back.</li>
+        <li><strong>Rate limiting</strong>: Gemini 429 on quota. Guarded by <code>tenacity</code> retry with exponential back-off, up to <code>RETRY_MAX_ATTEMPTS</code>.</li>
+        <li><strong>Caching bad answers</strong>: An error response stored in cache gets served forever. Guarded by <code>ERROR_MARKERS</code> check — error strings are never written to the cache.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q">Q3. How would you make the agent's tool selection more reliable at scale?</div>
+    <div class="qa-a">
+      <p>Several approaches, in increasing complexity:</p>
+      <ul>
+        <li><strong>Structured output</strong>: Use <code>response_schema</code> in Gemini to force the model to return a typed <code>ToolCall</code> object, eliminating ambiguous text parsing.</li>
+        <li><strong>Tool descriptions</strong>: Invest heavily in tool description quality. The model selects tools based on their description — vague descriptions cause mis-selection.</li>
+        <li><strong>Tool routing</strong>: For many tools (10+), add a classifier step that pre-selects the 2-3 most relevant tools before giving the full list to the agent. This reduces the selection space and improves accuracy.</li>
+        <li><strong>Evaluation harness</strong>: Build a test set of (query, expected_tool_calls) pairs and run it after every model upgrade to detect regressions.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Vector Databases &amp; Embeddings</h3>
+
+  <div class="qa-item">
+    <div class="qa-q">Q4. How does ChromaDB perform similarity search? What's the time complexity?</div>
+    <div class="qa-a">
+      <p>ChromaDB uses <strong>HNSW (Hierarchical Navigable Small World)</strong> graphs for ANN (Approximate Nearest Neighbor) search by default. HNSW builds a multi-layer graph where nodes are connected to their approximate nearest neighbors; search traverses from the top layer down, pruning large parts of the search space at each level.</p>
+      <ul>
+        <li><strong>Build time</strong>: O(n log n) — each insertion requires O(log n) graph updates</li>
+        <li><strong>Query time</strong>: O(log n) average for ANN — much faster than exact O(n) brute-force</li>
+        <li><strong>Accuracy</strong>: Approximate — <code>ef_construction</code> parameter trades recall vs. speed</li>
+      </ul>
+      <p>For the vector sizes in this system (under 10K chunks), exact search is also feasible. ChromaDB switches strategies internally.</p>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q">Q5. What is cosine similarity and why is it preferred over Euclidean distance for text embeddings?</div>
+    <div class="qa-a">
+      <p>Cosine similarity measures the angle between two vectors: <code>cos(θ) = (A·B) / (|A||B|)</code>. It ranges from -1 (opposite) to 1 (identical direction).</p>
+      <p>For text embeddings, cosine is preferred because:</p>
+      <ul>
+        <li>Embeddings encode <strong>semantic direction</strong>, not magnitude. Two sentences with the same meaning but different lengths produce embeddings in similar directions but potentially different magnitudes.</li>
+        <li>Euclidean distance penalizes magnitude differences — a short text and a long text about the same topic would appear dissimilar even if semantically identical.</li>
+        <li>Most embedding models (including MiniLM) are trained to maximize cosine similarity for similar pairs, so cosine directly reflects what the model was optimized for.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q">Q6. The L2 cache scans all Redis keys on every lookup. What's the scalability problem and how would you fix it?</div>
+    <div class="qa-a">
+      <p>The current implementation does a <code>SCAN</code> + cosine comparison against every cached entry — O(n) per lookup. At hundreds of cached queries it's fast; at tens of thousands it becomes a bottleneck.</p>
+      <p>Production fixes:</p>
+      <ul>
+        <li><strong>Redis Vector Search (RediSearch module)</strong>: Store embeddings as Redis vector fields and use <code>KNN</code> queries — O(log n) ANN search entirely inside Redis, no Python-side scan loop.</li>
+        <li><strong>Pre-filtering</strong>: Partition cache by topic cluster or model prefix to reduce the scan space.</li>
+        <li><strong>Replace Redis with a purpose-built vector DB</strong>: Pinecone, Weaviate, or Qdrant offer native ANN search with much better scaling characteristics than Redis key scanning.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Caching &amp; System Design</h3>
+
+  <div class="qa-item">
+    <div class="qa-q">Q7. How would you handle cache invalidation for an AI agent where answers may become stale?</div>
+    <div class="qa-a">
+      <p>This is harder than typical cache invalidation because there's no clear "source of truth" to invalidate against. Strategies:</p>
+      <ul>
+        <li><strong>TTL-based expiry</strong> (current approach): <code>REDIS_TTL_SECONDS=3600</code>. Simple but coarse — a news query is stale in minutes; a conceptual explanation may be valid for years. TTL should be query-type-aware.</li>
+        <li><strong>Topic-based TTL</strong>: Classify query topic at cache-write time and assign different TTLs (news=5min, technical=7days, definitions=30days).</li>
+        <li><strong>Freshness signal</strong>: Store a timestamp with each cache entry. On lookup, if the entry is "old", re-run the agent in the background and update the cache (stale-while-revalidate pattern).</li>
+        <li><strong>User-triggered invalidation</strong>: A <code>cache clear [query]</code> REPL command lets users force a fresh fetch.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q">Q8. Why is L1 in-memory rather than also using Redis? What does this design assume?</div>
+    <div class="qa-a">
+      <p>L1 assumes <strong>temporal locality within a single session</strong>: users often ask the same question (or variants) multiple times in one conversation. Serving these from RAM (nanoseconds) rather than Redis (milliseconds) + embedding computation (tens of milliseconds) is a meaningful latency win for interactive use.</p>
+      <p>The design explicitly accepts that L1 is ephemeral: restarting the process clears it. This is the correct tradeoff for a local assistant — L2 handles persistence. If this were a high-traffic API, L1 would need to be a shared in-process cache (e.g., <code>functools.lru_cache</code> at the API layer) or replaced with a distributed layer like Memcached.</p>
+    </div>
+  </div>
+
+  <h3>LLM Infrastructure</h3>
+
+  <div class="qa-item">
+    <div class="qa-q">Q9. How does the model router avoid adding more latency than it saves?</div>
+    <div class="qa-a">
+      <p>The classifier uses <strong>Gemini Flash Lite</strong> — the cheapest, fastest model — with a ~50-token prompt. A typical classification call takes ~300-500ms and costs fractions of a cent.</p>
+      <p>The break-even point: if a complex query would have cost $0.0035 on Pro vs. $0.0001 on Flash, and the classifier costs $0.000005, the router saves money on every correctly classified query. The latency cost (~400ms) is acceptable for a non-real-time research agent.</p>
+      <p>If latency were critical, the classifier could be replaced with a fine-tuned local model (e.g., a BERT classifier) or a simple heuristic (query length + keyword presence) as a fast first-pass.</p>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q">Q10. How would you evaluate whether the model router is actually saving money?</div>
+    <div class="qa-a">
+      <p>The <code>CostTracker</code> already logs model, tokens, cost, and cache_hit per query to SQLite. To evaluate routing quality:</p>
+      <ul>
+        <li><strong>A/B test</strong>: Run the same query set with router enabled vs. disabled. Compare total cost and answer quality (human eval or LLM-as-judge).</li>
+        <li><strong>Confusion analysis</strong>: Log classifier labels over time. If 95% of queries are classified <code>simple/moderate</code>, the router is saving ~95% × (Pro_cost - Flash_cost) per query.</li>
+        <li><strong>Quality regression</strong>: Build a benchmark of complex queries where Pro's answer is measurably better. Track how often these get correctly routed to Pro.</li>
+        <li><strong>Cost dashboard</strong>: <code>tracker.print_summary()</code> shows per-model costs. If Pro cost is near zero with router on, it's working.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q">Q11. What is the context window management strategy and why does it matter?</div>
+    <div class="qa-a">
+      <p>The <code>build_context()</code> method in <code>ChatService</code> uses a <strong>sliding window</strong>: it loads the last <code>MAX_HISTORY_TURNS</code> messages, then counts tokens with <code>tiktoken</code> and truncates from the oldest end until the total is under <code>MAX_CONTEXT_TOKENS</code>.</p>
+      <p>Why it matters: exceeding Gemini's context limit causes an API error that crashes the agent. More subtly, sending too much history increases latency and cost on every call. The sliding window ensures the agent always has recent conversation context without unbounded growth.</p>
+      <p>A more sophisticated strategy: use the vector memory to retrieve relevant older turns rather than including all recent turns linearly — this is "episodic memory" and is more token-efficient for long conversations.</p>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q">Q12. How would you productionize this system for 1000 concurrent users?</div>
+    <div class="qa-a">
+      <p>The current REPL architecture is single-user synchronous. For 1000 concurrent users:</p>
+      <ul>
+        <li><strong>API layer</strong>: Wrap in FastAPI with async endpoints. Each <code>run_agent</code> call becomes an <code>async</code> function with <code>await</code> on the Gemini SDK.</li>
+        <li><strong>Cache</strong>: L1 becomes a per-process TTL cache (<code>cachetools.TTLCache</code>). L2 Redis switches to RedisSearch with vector indexing for O(log n) ANN lookups.</li>
+        <li><strong>Vector memory</strong>: Replace ChromaDB (single-process) with a hosted vector DB (Pinecone, Qdrant) accessible to all instances.</li>
+        <li><strong>Session storage</strong>: SQLite → PostgreSQL for concurrent write safety.</li>
+        <li><strong>Rate limiting</strong>: Move from per-request retries to a token-bucket rate limiter shared across all workers.</li>
+        <li><strong>Observability</strong>: Replace <code>print()</code> statements with structured logging (structlog) + metrics (Prometheus) + traces (OpenTelemetry).</li>
+      </ul>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script>
+  function toggleFaq(el) {
+    const answer = el.nextElementSibling;
+    el.classList.toggle('open');
+    answer.classList.toggle('visible');
+  }
+
+  // Highlight active nav link on scroll
+  const sections = document.querySelectorAll('section[id], h2[id]');
+  const navLinks = document.querySelectorAll('nav a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 80) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  });
+</script>
+</body>
+</html>

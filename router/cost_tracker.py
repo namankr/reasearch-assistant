@@ -9,8 +9,8 @@ class CostTracker:
     """
 
     MODEL_COSTS ={
-        "gemini-2.0-flash":FLASH_COST_PER_1M,
-        "gemini-1.5-pro":PRO_COST_PER_1M
+        "gemini-3.1-flash-lite":FLASH_COST_PER_1M,
+        "gemini-3.1-pro":PRO_COST_PER_1M
     }
 
     def __init__(self):

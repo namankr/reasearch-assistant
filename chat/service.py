@@ -44,14 +44,6 @@ class ChatService:
                  datetime.utcnow().isoformat())
             )
     
-    def clear_session(self):
-        """Wipe this session's history (useful for testing)."""
-        with self._conn() as conn:
-            conn.execute(
-                "DELETE FROM messages WHERE project=? AND session=?",
-                (self.project_id, self.session_id)
-            )
-
     def load_history(self, last_n: int = None)-> list[dict]:
         """
         Return conversation history as a list of {role, content} dicts.

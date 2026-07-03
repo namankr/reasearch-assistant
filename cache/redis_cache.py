@@ -38,12 +38,12 @@ class RedisSemanticCache:
 
     # ── Public interface ──────────────────────────────────────────────────
 
-    def get(self, query:str, model:str)-> str | None:
+    def get(self, query:str)-> str | None:
         if not self._redis:
             return
         query_vec = self._embed(query)
-        # Scan all cached entries for this model
-        pattern = f"cache:{model}:*"
+        # Scan all cached entries — cache is not partitioned by model
+        pattern = "cache:*"
         best_score, best_answer = 0.0, None
 
         for key in self._redis.scan_iter(pattern):
@@ -54,6 +54,7 @@ class RedisSemanticCache:
                 entry = json.loads(raw)
                 score = self.cosine(query_vec, entry["embedding"])
                 if score > best_score:
+                    best_score = score
                     best_answer = entry["answer"]
             except Exception:
                 continue
@@ -67,7 +68,7 @@ class RedisSemanticCache:
               f"for: '{query[:60]}'")
         return None
     
-    def set(self, query:str, model:str, answer:str):
+    def set(self, query:str, answer:str):
         if not self._redis:
             return
         
@@ -75,10 +76,9 @@ class RedisSemanticCache:
             "query": query,
             "embedding": self._embed(query),
             "answer": answer,
-            "model":model
         }
 
-        key = f"cache:{model}:{uuid.uuid4()}"
+        key = f"cache:{uuid.uuid4()}"
         self._redis.setex(key, REDIS_TTL_SECONDS, json.dumps(entry))
         print(f"[Cache L2] Stored with TTL={REDIS_TTL_SECONDS}s: "
               f"'{query[:60]}'")

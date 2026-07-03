@@ -13,27 +13,27 @@ class CacheManager:
         self.l2 = RedisSemanticCache()
         self.stats = {"l1_hits":0,"l2_hits":0, "misses":0}
 
-    def get(self, query:str, model:str)-> str | None:
+    def get(self, query:str)-> str | None:
         # L1 first
-        answer = self.l1.get(query, model)
+        answer = self.l1.get(query)
         if answer:
             self.stats["l1_hits"] +=1;
             return answer
         # L2 next
-        answer = self.l2.get(query, model)
+        answer = self.l2.get(query)
         if answer:
             # Promote to L1 so next identical hit is instant
-            self.l1.set(query, model, answer)
+            self.l1.set(query, answer)
             self.stats["l2_hits"] +=1;
             return answer
         
         self.stats["misses"] += 1;
         return None
 
-    def store(self, query: str, model: str, answer: str):
+    def store(self, query: str, answer: str):
         """Store a fresh agent answer in both cache layers."""
-        self._l1.set(query, model, answer)
-        self._l2.set(query, model, answer)
+        self.l1.set(query, answer)
+        self.l2.set(query, answer)
 
     def print_stats(self):
         total = sum(self.stats.values())

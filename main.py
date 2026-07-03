@@ -4,7 +4,7 @@ from security.sanitiser import demo_injection_attack
 from cache.cache_manager import CacheManager
 from router.model_router import ModelRouter
 from router.cost_tracker import CostTracker
-
+from config import (ENABLE_ROUTER, GEMINI_FLASH_MODEL )
 
 PROJECT_ID = "research_agent"
 
@@ -51,21 +51,25 @@ def main():
             continue
     
 
-        # ── Phase 4: Route to the right model ────────────────────────────
-        model_name, complexity = router.route(user_input)
-
-        # ── Phase 3: Check cache before hitting the LLM ──────────────────
-        cached_answer = cache.get(user_input, model_name) 
+        # ── Phase 3: Check cache first — before paying for a router call ─
+        cached_answer = cache.get(user_input)
         if cached_answer:
-            # Log as cache hit — zero tokens consumed
-            tracker.log(user_input, model_name,
+            # Log as cache hit — zero tokens consumed, no model was invoked
+            tracker.log(user_input, "cache",
                         tokens_est=0, cache_hit=True)
             chat.save_message("user", user_input)
             chat.save_message("assistant", cached_answer)
             print(f"\nAgent [cached]: {cached_answer}\n")
-            continue 
+            continue
 
-        # ── Cache miss — run the agent ──────────────────────────────────
+        # ── Phase 4: Cache miss — route to the right model ────────────────
+        if ENABLE_ROUTER:
+            model_name, complexity = router.route(user_input)
+        else:
+            model_name, complexity = GEMINI_FLASH_MODEL, "moderate"
+            print("[Router] Disabled — defaulting to Flash")
+
+        # ── Run the agent ─────────────────────────────────────────────────
         # ── Save user message ─────────────────────────────────────────────
         chat.save_message("user", user_input)
 
@@ -81,19 +85,37 @@ def main():
         project_id=PROJECT_ID,
         model_name=model_name
         )
-        # ── Store answer in both cache layers ─────────────────────────────
-        cache.store(user_input, model_name, response)
-        # ── Estimate tokens and log cost ──────────────────────────────────
-        # Rough estimate: ~1 token per 4 chars of input + output
-        tokens_est = (len(user_input) + len(response)) // 4
-        tracker.log(user_input, model_name,
-                    tokens_est=tokens_est, cache_hit=False)
-        
+
+        # ─────────────────────────────────────────────────────────────────
+        # ADD THE GUARD HERE — between run_agent() and cache.store()
+        # ─────────────────────────────────────────────────────────────────
+        ERROR_MARKERS = [
+            "quota exceeded",
+            "http 429",
+            "rate limit",
+            "please wait",
+            "model request failed",
+            "agent operation failed",
+            "max iterations reached",
+        ]
+
+        is_error = any(marker in response.lower() for marker in ERROR_MARKERS)
+
+        if not is_error:
+            # ── Store answer in both cache layers ─────────────────────────────
+            cache.store(user_input, response)
+            # ── Estimate tokens and log cost ──────────────────────────────────
+            # Rough estimate: ~1 token per 4 chars of input + output
+            tokens_est = (len(user_input) + len(response)) // 4
+            tracker.log(user_input, model_name,
+                        tokens_est=tokens_est, cache_hit=False)
+        else:
+             print("[Cache] Skipping — error response not cached")
+
         # ── Save and print response ───────────────────────────────────────
         chat.save_message("assistant", response)
         print(f"\nAgent [{complexity} → {model_name.split('-')[-1]}]: "
               f"{response}\n")
-
 
 if __name__ == "__main__":
     main()
