@@ -3,7 +3,7 @@ from google import genai
 from google.genai import types
 from google.genai import errors as genai_errors
 from tenacity import retry, stop_after_attempt, wait_random_exponential, retry_if_exception
-
+from observability.tracer import trace_tool_call, trace_llm_call
 from memory.vector_store import VectorMemory
 from security.sanitiser import sanitise
 from config import GEMINI_API_KEY, LLM_MODEL, MAX_ITERATIONS
@@ -69,6 +69,7 @@ def _send_with_retry(chat, message):
 
 
 # ── Main agent function ───────────────────────────────────────────────────
+@trace_llm_call
 def run_agent(
     user_query: str,
     history: list[dict],
@@ -133,6 +134,13 @@ def run_agent(
             else:
                 tool_result = f"Unknown tool: {fn_name}"
 
+            trace_tool_call(
+            tool_name=fn_name,
+            query=str(fn_args),
+            result=tool_result,
+            latency_ms=int((time.time() - t0) * 1000)
+            )
+    
             # Sanitise FIRST, then use clean_result everywhere
             clean_result = sanitise(tool_result, source=fn_args.get("query", fn_name))
 

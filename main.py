@@ -5,6 +5,7 @@ from cache.cache_manager import CacheManager
 from router.model_router import ModelRouter
 from router.cost_tracker import CostTracker
 from config import (ENABLE_ROUTER, GEMINI_FLASH_MODEL )
+from observability.tracer import flush
 
 PROJECT_ID = "research_agent"
 
@@ -28,6 +29,7 @@ def main():
             print("\nBye!")
             cache.print_stats()
             tracker.print_summary()
+            flush() 
             break
 
         if not user_input:
@@ -35,6 +37,7 @@ def main():
         if user_input.lower() == "quit":
             cache.print_stats()
             tracker.print_summary()
+            flush() 
             break
         if user_input.lower() == "new":
             chat = ChatService(project_id=PROJECT_ID)

@@ -28,3 +28,7 @@ python-dotenv==1.2.2
 
 # Groq fallback LLM
 groq>=0.9.0
+
+# Observability and Testing
+langfuse>=4.0.0
+pytest==9.1.1

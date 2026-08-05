@@ -50,3 +50,11 @@ RETRY_MAX_ATTEMPTS = 4
 RETRY_BASE_DELAY   = 10   # seconds — Gemini free tier needs longer waits
 
 ENABLE_ROUTER = True
+
+#LANGFUSE CONFIG
+
+LANGFUSE_PUBLIC_KEY    = os.getenv("LANGFUSE_PUBLIC_KEY")
+LANGFUSE_SECRET_KEY    = os.getenv("LANGFUSE_SECRET_KEY")
+LANGFUSE_HOST          = os.getenv("LANGFUSE_HOST")
+EVAL_PASS_THRESHOLD    = 0.7   # 70% of benchmarks must pass
+HALLUCINATION_THRESHOLD = 0.4  # cosine below this = risky claim

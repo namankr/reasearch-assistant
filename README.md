@@ -56,6 +56,13 @@ User Input
 - `CostTracker` logs every call to SQLite — model, tokens estimate, USD cost, cache hit flag
 - Router can be toggled off (`ENABLE_ROUTER=False`) to hard-code Flash
 
+### Phase 5 — Evals & Observability
+- **Langfuse tracing** (`observability/tracer.py`): every `run_agent()` call is wrapped with `@observe`, recording inputs, output preview, and latency; individual tool calls logged as Langfuse events
+- **LLM-as-judge** (`evals/judge.py`): Gemini scores each answer on accuracy (0–10), completeness (0–10), and hallucination risk (0–10)
+- **Hallucination detection** (`evals/hallucination.py`): each sentence in an answer is compared via cosine similarity against the session's ChromaDB memory; claims below `HALLUCINATION_THRESHOLD` are flagged
+- **Benchmark suite** (`evals/benchmark.py`): 10 curated queries across factual, comparison, and security categories; each has `expected_keywords` (must appear) and `should_not_contain` (refusal/disclaimer guard)
+- **Eval runner** (`evals/runner.py`): runs all benchmarks, saves results to SQLite (`eval_results` table), prints a summary, and exits non-zero when pass rate < `EVAL_PASS_THRESHOLD` — CI-ready
+
 ### Security
 - Regex-based prompt injection scanner (`sanitiser.py`) applied to all tool results before they reach the LLM
 - 13 known attack patterns (jailbreak, DAN mode, role-override, INST tags, etc.)
@@ -94,8 +101,17 @@ User Input
 ├── security/
 │   └── sanitiser.py         Prompt injection detection + redaction
 │
-└── tools/
-    └── web_search.py        DuckDuckGo / Tavily search tool
+├── tools/
+│   └── web_search.py        DuckDuckGo / Tavily search tool
+│
+├── evals/
+│   ├── benchmark.py         10 curated eval queries with keyword + forbidden checks
+│   ├── judge.py             LLM-as-judge (Gemini) — accuracy / completeness / hallucination risk
+│   ├── hallucination.py     Per-claim grounding check against ChromaDB session memory
+│   └── runner.py            Full eval loop — scores, SQLite sink, CI exit code
+│
+└── observability/
+    └── tracer.py            Langfuse @observe decorator + tool event logger
 ```
 
 ---
@@ -121,6 +137,16 @@ GROQ_API_KEY=your_key_here          # optional — only needed for Groq classifi
 TAVILY_API_KEY=your_key_here        # optional — only needed for Tavily search
 SEARCH_PROVIDER=ddgs                # ddgs (default) or tavily
 CLASSIFIER_PROVIDER=gemini          # gemini (default) or groq
+
+# Phase 5 — Langfuse observability (optional)
+LANGFUSE_PUBLIC_KEY=your_key_here
+LANGFUSE_SECRET_KEY=your_key_here
+LANGFUSE_HOST=https://cloud.langfuse.com
+```
+
+### 6. Run evals
+```bash
+python -m evals.runner
 ```
 
 ### 4. Start Redis (for L2 cache)
@@ -155,6 +181,11 @@ python main.py
 | `MEMORY_TOP_K` | 3 | Chunks retrieved per query |
 | `CHUNK_SIZE` | 400 | Words per memory chunk |
 | `MAX_CONTEXT_TOKENS` | 8000 | Context window cap |
+| `EVAL_PASS_THRESHOLD` | 0.7 | Min benchmark pass rate for CI green |
+| `HALLUCINATION_THRESHOLD` | 0.5 | Cosine score below which a claim is flagged |
+| `LANGFUSE_PUBLIC_KEY` | — | Langfuse project public key |
+| `LANGFUSE_SECRET_KEY` | — | Langfuse project secret key |
+| `LANGFUSE_HOST` | — | Langfuse instance URL |
 
 ---
 
@@ -174,4 +205,6 @@ python main.py
 | `tavily-python` | Tavily search (premium) |
 | `truststore` | Windows native SSL cert store |
 | `python-dotenv` | `.env` loading |
-| `sqlite3` | Chat history + cost log (stdlib) |
+| `sqlite3` | Chat history + cost log + eval results (stdlib) |
+| `langfuse` | LLM observability — traces, spans, events |
+| `pytest` | Eval runner test harness |
