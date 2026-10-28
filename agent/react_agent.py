@@ -1,4 +1,5 @@
 import time
+import llm_counter
 from google import genai
 from google.genai import types
 from google.genai import errors as genai_errors
@@ -66,6 +67,7 @@ def is_rate_limit_error(exception) -> bool:
     reraise=True
 )
 def _send_with_retry(chat, message):
+    llm_counter.increment()
     return chat.send_message(message)
 
 

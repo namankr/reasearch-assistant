@@ -41,3 +41,4 @@ google-auth>=2.0.0
 # Phase 9 - optional health endpoint (uvicorn health:app)
 # fastapi
 # uvicorn
+google-auth-oauthlib>=1.0.0

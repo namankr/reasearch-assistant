@@ -1,4 +1,5 @@
 import json
+import llm_counter
 from google.genai import types
 from tenacity import retry, stop_after_attempt, wait_random_exponential, retry_if_exception
 
@@ -13,6 +14,7 @@ from config import GEMINI_FLASH_MODEL
     reraise=True
 )
 def _generate(prompt: str, model: str):
+    llm_counter.increment()
     return _client.models.generate_content(
         model=model,
         contents=prompt,

@@ -29,7 +29,9 @@ def make_research():
 
 def make_plan(status="ready_for_booking", research=True):
     return CoordinatorPlan(status=status, conflict_events=[],
-                           research=make_research() if research else None, message="m")
+                           research=make_research() if research else None, message="m",
+                           intent=TravelIntent(origin="Delhi", destination="Goa",
+                                               start_date="2026-11-06", end_date="2026-11-08"))
 
 
 # ── ChatService state machine ────────────────────────────────────────────────
@@ -74,10 +76,45 @@ def test_booker_requires_research():
 
 
 @pytest.mark.parametrize("msg,status", [("confirm", "completed"), ("CANCEL", "cancelled")])
-def test_approval_transitions(msg, status):
+def test_approval_transitions(msg, status, monkeypatch):
+    monkeypatch.setattr(booker, "_calendar", RecordingCalendar())
     run_booker(make_plan(), "s1")
     handle_approval(msg, "s1")
     assert ChatService(PID, "s1").get_status() == status
+
+
+class RecordingCalendar:
+    def __init__(self, error=None):
+        self.error, self.created = error, []
+
+    def create_event(self, title, start_date, end_date, description=""):
+        if self.error:
+            raise self.error
+        self.created.append((title, start_date, end_date, description))
+        return {"id": "e1", "link": "http://cal/e1"}
+
+
+def test_confirm_creates_calendar_event(monkeypatch):
+    cal = RecordingCalendar()
+    monkeypatch.setattr(booker, "_calendar", cal)
+    run_booker(make_plan(), "s1")
+    out = handle_approval("confirm", "s1")
+    assert cal.created[0][:3] == ("Trip to Goa", "2026-11-06", "2026-11-08")
+    assert "ITINERARY" in cal.created[0][3] and "http://cal/e1" in out
+    assert ChatService(PID, "s1").get_status() == "completed"
+
+
+def test_confirm_calendar_failure_stays_awaiting_for_retry(monkeypatch):
+    monkeypatch.setattr(booker, "_calendar", RecordingCalendar(error=RuntimeError("403")))
+    run_booker(make_plan(), "s1")
+    out = handle_approval("confirm", "s1")
+    assert "Could not add" in out and "403" in out
+    assert ChatService(PID, "s1").get_status() == "awaiting_approval"
+    ok = RecordingCalendar()
+    monkeypatch.setattr(booker, "_calendar", ok)
+    handle_approval("confirm", "s1")
+    assert len(ok.created) == 1
+    assert ChatService(PID, "s1").get_status() == "completed"
 
 
 def test_approval_edit_and_unknown():
@@ -149,13 +186,14 @@ def test_pipeline_edit_reuses_original_request(monkeypatch):
         seen.append((request, is_revision))
         return make_plan()
     monkeypatch.setattr(travel_pipeline, "run_coordinator", fake_coordinator)
+    monkeypatch.setattr(booker, "_calendar", RecordingCalendar())
 
     out = travel_pipeline.handle_user_message("Delhi to Goa", "s1")
     assert "Type **confirm**" in out
     travel_pipeline.handle_user_message("edit: direct only", "s1")
     assert seen[0] == ("Delhi to Goa", False)
     assert seen[1][1] is True and "Delhi to Goa" in seen[1][0] and "direct only" in seen[1][0]
-    assert travel_pipeline.handle_user_message("confirm", "s1").startswith("Itinerary confirmed")
+    assert travel_pipeline.handle_user_message("confirm", "s1").startswith("Confirmed.")
     assert len(seen) == 2  # approval messages never reach the coordinator
 
 

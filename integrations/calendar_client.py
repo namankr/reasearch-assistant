@@ -68,3 +68,25 @@ class CalendarMCPClient:
             for e in result.get("items", [])
         ]
         return {"has_conflict": bool(events), "events": events}
+
+    def create_event(self, title: str, start_date: str, end_date: str,
+                     description: str = "") -> dict:
+        """
+        Create an all-day event spanning start_date..end_date (inclusive).
+        Needs a token with write scope (run `python google_auth.py`).
+        Returns {id, link}.
+        """
+        if not self.configured:
+            raise RuntimeError("Google Calendar credentials are not configured")
+
+        start = datetime.strptime(start_date, "%Y-%m-%d")
+        end = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1)  # exclusive end
+        body = {
+            "summary": title,
+            "description": description,
+            "start": {"date": start.strftime("%Y-%m-%d")},
+            "end": {"date": end.strftime("%Y-%m-%d")},
+        }
+        event = self._get_service().events().insert(
+            calendarId=self._cal_id, body=body).execute()
+        return {"id": event.get("id"), "link": event.get("htmlLink")}

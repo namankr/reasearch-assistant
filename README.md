@@ -76,10 +76,19 @@ Run with `python main_travel.py`. Full detail in [`project_brief.md`](project_br
 
 - **Phase 6 — Agent A (Researcher):** flights/hotels (SerpAPI) + attractions, returned as validated Pydantic `ResearchResult`.
 - **Phase 7 — Agent B (Coordinator):** parses dates, checks Google Calendar *before* researching, delegates to Agent A.
-- **Phase 8 — Agent C (Booker):** builds the itinerary and pauses at `awaiting_approval`; `confirm` / `cancel` / `edit …` are handled by the service layer (booking is simulated).
+- **Phase 8 — Agent C (Booker):** builds the itinerary and pauses at `awaiting_approval`; `confirm` / `cancel` / `edit …` are handled by the service layer. `confirm` creates a Google Calendar event (no real flight/hotel purchase).
 - **Phase 9 — Hardening:** parallel + cached research, travel evals (`python -m evals.travel_runner`), tool-output cap, session cleanup (`python maintenance.py`), health check (`health.py`).
 
 Extra env vars: `SERPAPI_KEY`, `GOOGLE_CALENDAR_CREDENTIALS`, `GOOGLE_CALENDAR_ID`. Tests: `pytest tests` (offline).
+
+**Test UI:** `python ui_server.py` → http://127.0.0.1:8000 (live by default; shows LLM calls used; optional demo mode).
+
+**Google Calendar setup (needed for conflict check and the event created on `confirm`):**
+1. In Google Cloud Console enable the *Google Calendar API* and create an OAuth client of type *Desktop app*; download it as `client_secret.json`.
+2. `python google_auth.py client_secret.json` (opens a browser; writes `token.json` with `calendar.events` scope).
+3. In `.env`: `GOOGLE_CALENDAR_CREDENTIALS=token.json` and `GOOGLE_CALENDAR_ID=primary`.
+
+`confirm` adds an all-day "Trip to <destination>" event; flights/hotels are not purchased.
 
 ---
 

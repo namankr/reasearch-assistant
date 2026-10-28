@@ -15,7 +15,7 @@ Newest at the bottom; add a row whenever a non-obvious choice is made.
 | D-009 | 2026-10-28 | Intent (origin/destination/dates) parsed by a JSON-mode Gemini call with today's date injected | Needed for calendar check and parallel tools; `TravelIntent` validates it. |
 | D-010 | 2026-10-28 | Approval is a service-layer state machine (`running → awaiting_approval → completed/cancelled`), not prompt logic | Agents never see confirm/cancel; deterministic. |
 | D-011 | 2026-10-28 | Fixed the guide's `set_context` (UPDATE on a missing row was a no-op) by creating the session row first; lookups scoped by project | Guide code lost context when `set_context` ran before `set_status`. |
-| D-012 | 2026-10-28 | "confirm" **simulates** booking and says so; dropped the guide's "confirmation email" claim | No booking/email integration exists; don't tell users something false. |
+| D-012 | 2026-10-28 | "confirm" no longer just simulates: it creates an all-day Google Calendar event (superseded by D-024); flights/hotels are still NOT purchased and the reply says so | Dropped the guide's "confirmation email" claim — nothing sends one. |
 | D-013 | 2026-10-28 | Itinerary formatted deterministically (cheapest flight, top-rated hotel), no `Itinerary` schema | No hallucination risk, free, testable. Revisit for day-by-day plans. |
 | D-014 | 2026-10-28 | Edits re-run the coordinator with original request + revision and use the sequential ReAct researcher | The parallel path uses only structured intent, so it would ignore "direct flights only" and could return a stale cached result. |
 | D-015 | 2026-10-28 | Parallel Agent A runs flights ‖ hotels ‖ attractions, not attractions after flights | Intent already supplies the destination; no dependency on flight results. |
@@ -27,3 +27,5 @@ Newest at the bottom; add a row whenever a non-obvious choice is made.
 | D-021 | 2026-10-28 | Tests are offline (temp SQLite, fake calendar, patched agents); live evals are a separate runner | Deterministic CI without API keys or quota. |
 | D-022 | 2026-10-28 | Benchmark t03 treats ≈ $40/night as ₹3000 | Tools return USD; fixed approximate rate. |
 | D-023 | 2026-10-28 | Deferred: per-agent cost breakdown, real booking APIs, secrets manager, tests for Phases 1–5 | Out of scope this pass; listed in `project_brief.md`. |
+| D-024 | 2026-10-28 | On confirm, write an all-day event "Trip to <dest>" (itinerary in description) to Google Calendar; if it fails the session stays `awaiting_approval` so confirm can be retried | User requirement (not in the Word guide, which was read-only). Needs write scope: `python google_auth.py` uses `calendar.events`. Event is created only after confirm, never at research time. |
+| D-025 | 2026-10-28 | Test UI is a stdlib server (`ui_server.py` + `ui/index.html`), live by default; optional demo toggle; shows LLM call counter | No new dependency; user wants real end-to-end runs under a tight Gemini quota (happy path ≈ 2 LLM calls). |

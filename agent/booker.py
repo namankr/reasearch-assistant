@@ -1,8 +1,10 @@
 from chat.service import ChatService
+from integrations.calendar_client import CalendarMCPClient
 from schemas.travel import CoordinatorPlan, ResearchResult
 
 PROJECT_ID = "travel_agent"
 EDIT_PREFIX = "__EDIT_REQUEST__:"
+_calendar = CalendarMCPClient()
 
 
 def _format_itinerary(research: ResearchResult, nights: int | None = None) -> str:
@@ -60,6 +62,8 @@ def run_booker(plan: CoordinatorPlan, session_id: str, original_request: str = "
 
     chat.set_context("pending_itinerary", itinerary)
     chat.set_context("research_data", plan.research.model_dump())
+    if plan.intent:
+        chat.set_context("intent", plan.intent.model_dump())
     if original_request:
         chat.set_context("original_request", original_request)
     chat.set_status("awaiting_approval")
@@ -72,6 +76,39 @@ def run_booker(plan: CoordinatorPlan, session_id: str, original_request: str = "
     )
 
 
+def _confirm(chat: ChatService) -> str:
+    """
+    Writes the trip to Google Calendar. On failure the session stays in
+    awaiting_approval so the user can fix credentials and type confirm again.
+    Flights/hotels are NOT actually booked - there is no booking integration yet.
+    """
+    intent = chat.get_context("intent")
+    itinerary = chat.get_context("pending_itinerary") or ""
+    research = chat.get_context("research_data") or {}
+    if not intent:
+        return "Cannot confirm: trip dates are missing from this session. Please start a new request."
+
+    destination = research.get("destination") or intent["destination"]
+    try:
+        event = _calendar.create_event(
+            title=f"Trip to {destination}",
+            start_date=intent["start_date"],
+            end_date=intent["end_date"],
+            description=itinerary,
+        )
+    except Exception as e:
+        return (f"Could not add the trip to Google Calendar: {e}\n"
+                "Fix the problem (see README: Google Calendar setup) and type confirm to retry, "
+                "or type cancel.")
+
+    chat.set_context("calendar_event", event)
+    chat.set_status("completed")
+    link = f"\n{event['link']}" if event.get("link") else ""
+    return (f"Confirmed. '{'Trip to ' + destination}' was added to your Google Calendar "
+            f"({intent['start_date']} to {intent['end_date']}).{link}\n"
+            "NOTE: no flights or hotels were actually purchased - booking APIs are not integrated.")
+
+
 def handle_approval(user_message: str, session_id: str) -> str:
     """
     Routes confirm / cancel / edit while status == awaiting_approval.
@@ -81,11 +118,7 @@ def handle_approval(user_message: str, session_id: str) -> str:
     msg = user_message.strip().lower()
 
     if msg == "confirm":
-        chat.set_status("confirmed")
-        # Real booking APIs would be called here. Until integrated, this is simulated.
-        chat.set_status("completed")
-        return ("Itinerary confirmed. NOTE: booking is simulated - no real reservation "
-                "or payment was made.")
+        return _confirm(chat)
 
     if msg == "cancel":
         chat.set_status("cancelled")
