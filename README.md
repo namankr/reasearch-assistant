@@ -65,8 +65,21 @@ User Input
 
 ### Security
 - Regex-based prompt injection scanner (`sanitiser.py`) applied to all tool results before they reach the LLM
-- 13 known attack patterns (jailbreak, DAN mode, role-override, INST tags, etc.)
+- 12 known attack patterns (jailbreak, DAN mode, role-override, INST tags, etc.)
 - Flagged content is redacted in-place — the agent never sees raw injected text
+
+---
+
+## Phases 6–9 — Multi-Agent Travel Planner
+
+Run with `python main_travel.py`. Full detail in [`project_brief.md`](project_brief.md); rationale in [`decision.md`](decision.md).
+
+- **Phase 6 — Agent A (Researcher):** flights/hotels (SerpAPI) + attractions, returned as validated Pydantic `ResearchResult`.
+- **Phase 7 — Agent B (Coordinator):** parses dates, checks Google Calendar *before* researching, delegates to Agent A.
+- **Phase 8 — Agent C (Booker):** builds the itinerary and pauses at `awaiting_approval`; `confirm` / `cancel` / `edit …` are handled by the service layer (booking is simulated).
+- **Phase 9 — Hardening:** parallel + cached research, travel evals (`python -m evals.travel_runner`), tool-output cap, session cleanup (`python maintenance.py`), health check (`health.py`).
+
+Extra env vars: `SERPAPI_KEY`, `GOOGLE_CALENDAR_CREDENTIALS`, `GOOGLE_CALENDAR_ID`. Tests: `pytest tests` (offline).
 
 ---
 

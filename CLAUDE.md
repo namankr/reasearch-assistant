@@ -7,9 +7,8 @@ routing + prompt injection defense. See `README.md` for setup/usage and `docs.ht
 for the full engineering deep-dive (architecture, FAQ, L3 interview Q&A). 
 
 ## Future Enhancements
-- currently we have a 5-phase agentic AI research assistant built with Gemini Flash till now.
-- Phase 6–9: NOT STARTED.
-- Extends to a multi-agent travel planner in Phases 6-9. In upcoming version.
+- Phases 6–9 (multi-agent travel planner) are implemented in code; see `project_brief.md` and `decision.md`.
+- Remaining: live end-to-end run with API keys, real booking APIs, per-agent cost tracking, secrets manager.
  
 ## Phases completed
 - Phase 1: ReAct loop + web search tool (DuckDuckGo default via `ddgs`, Tavily optional)
@@ -75,8 +74,8 @@ for the full engineering deep-dive (architecture, FAQ, L3 interview Q&A).
 ```
 
 ## Known issues / gaps
-- **No test suite exists.** Last commit message is literally "to do: testing" — there
-  is no `tests/` directory or automated coverage for any phase.
+- Test suite is minimal: `tests/` (offline, `pytest tests`) covers Phases 6–9 and the sanitiser only;
+  Phases 1–5 (router, cache, memory, evals) remain untested.
 - Gemini free tier hits 429 daily limit quickly — retry/back-off (`tenacity`) and an
   optional Groq classifier exist as mitigations, but the classifier defaults to Gemini
   (see above). Cache hits now skip the classifier entirely (cache runs before router),

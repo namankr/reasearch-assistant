@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic AI — Project Reference</title>
+<style>
+  /* ── Tokens ─────────────────────────────────────────────────────────── */
+  :root {
+    --bg:        #0D0F12;
+    --bg2:       #13161A;
+    --bg3:       #1A1E24;
+    --border:    #252A32;
+    --border2:   #2E3540;
+    --text:      #E4E8EF;
+    --muted:     #7A8799;
+    --accent:    #4F8EF7;
+    --green:     #3ECF8E;
+    --amber:     #F5A623;
+    --red:       #F26060;
+    --purple:    #9B7FE8;
+    --teal:      #2DD4BF;
+    --mono:      'JetBrains Mono', 'Fira Code', monospace;
+    --sans:      'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── Layout ─────────────────────────────────────────────────────────── */
+  .sidebar {
+    position: fixed; top: 0; left: 0;
+    width: 220px; height: 100vh;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 24px 0;
+    z-index: 100;
+  }
+
+  .main {
+    margin-left: 220px;
+    padding: 40px 48px;
+    max-width: 960px;
+  }
+
+  /* ── Sidebar ─────────────────────────────────────────────────────────── */
+  .sidebar-logo {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .sidebar-logo .logo-title {
+    font-size: 13px; font-weight: 600; color: var(--text);
+    letter-spacing: .02em;
+  }
+  .sidebar-logo .logo-sub {
+    font-size: 11px; color: var(--muted); margin-top: 2px;
+  }
+
+  .nav-section {
+    padding: 6px 20px 4px;
+    font-size: 10px; font-weight: 600;
+    color: var(--muted); letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 20px;
+    font-size: 13px; color: var(--muted);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    transition: all .15s;
+    text-decoration: none;
+  }
+  .nav-item:hover { color: var(--text); background: var(--bg3); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(79,142,247,.06); }
+  .nav-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── Typography ─────────────────────────────────────────────────────── */
+  .page-title {
+    font-size: 28px; font-weight: 700; color: var(--text);
+    letter-spacing: -.02em; margin-bottom: 6px;
+  }
+  .page-sub { font-size: 14px; color: var(--muted); margin-bottom: 40px; }
+
+  h2 {
+    font-size: 18px; font-weight: 600; color: var(--text);
+    margin: 48px 0 16px; padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  h2:first-of-type { margin-top: 0; border-top: none; }
+
+  h3 { font-size: 14px; font-weight: 600; color: var(--text); margin: 20px 0 8px; }
+
+  p { color: var(--muted); margin-bottom: 12px; line-height: 1.75; }
+
+  /* ── Section ─────────────────────────────────────────────────────────── */
+  .section { margin-bottom: 64px; scroll-margin-top: 40px; }
+
+  /* ── Phase header ───────────────────────────────────────────────────── */
+  .phase-header {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 24px; margin-bottom: 24px;
+  }
+  .phase-num {
+    font-size: 11px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; padding: 4px 12px;
+    border-radius: 20px; flex-shrink: 0;
+  }
+  .phase-title { font-size: 17px; font-weight: 600; color: var(--text); }
+  .phase-desc  { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+  /* ── Cards ──────────────────────────────────────────────────────────── */
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .card-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px 18px;
+  }
+  .card-label {
+    font-size: 10px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+  }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .card-body  { font-size: 12px; color: var(--muted); line-height: 1.65; }
+
+  /* ── Concept pills ──────────────────────────────────────────────────── */
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+  .pill {
+    font-size: 11px; padding: 3px 10px; border-radius: 20px;
+    background: var(--bg3); border: 1px solid var(--border2);
+    color: var(--muted);
+  }
+  .pill.accent  { background: rgba(79,142,247,.12); border-color: rgba(79,142,247,.3); color: var(--accent); }
+  .pill.green   { background: rgba(62,207,142,.10); border-color: rgba(62,207,142,.3); color: var(--green); }
+  .pill.amber   { background: rgba(245,166,35,.10); border-color: rgba(245,166,35,.3); color: var(--amber); }
+  .pill.red     { background: rgba(242,96,96,.10);  border-color: rgba(242,96,96,.3);  color: var(--red); }
+  .pill.purple  { background: rgba(155,127,232,.10);border-color: rgba(155,127,232,.3);color: var(--purple); }
+  .pill.teal    { background: rgba(45,212,191,.10); border-color: rgba(45,212,191,.3); color: var(--teal); }
+
+  /* ── Code blocks ─────────────────────────────────────────────────────── */
+  pre {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 18px 20px;
+    overflow-x: auto; margin: 12px 0 20px;
+    font-family: var(--mono); font-size: 12px;
+    line-height: 1.75; color: var(--text);
+  }
+  .code-label {
+    font-size: 10px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 4px;
+  }
+  code { font-family: var(--mono); font-size: 12px; color: var(--teal); }
+
+  /* syntax highlight classes */
+  .kw  { color: var(--purple); }
+  .fn  { color: var(--accent); }
+  .st  { color: var(--green); }
+  .cm  { color: #4A5568; }
+  .num { color: var(--amber); }
+
+  /* ── Flow diagram ───────────────────────────────────────────────────── */
+  .flow {
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: 0; margin: 16px 0; background: var(--bg2);
+    border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px;
+  }
+  .flow-box {
+    font-size: 12px; padding: 8px 14px; border-radius: 6px;
+    border: 1px solid var(--border2); background: var(--bg3);
+    color: var(--text); text-align: center; white-space: nowrap;
+  }
+  .flow-arr { color: var(--muted); padding: 0 8px; font-size: 16px; }
+
+  /* ── Table ──────────────────────────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; }
+  th {
+    font-size: 11px; font-weight: 600; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted);
+    padding: 8px 14px; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    font-size: 13px; color: var(--muted);
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+  }
+  td:first-child { color: var(--text); font-weight: 500; font-family: var(--mono); font-size: 12px; }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── Alert / callout ─────────────────────────────────────────────────── */
+  .callout {
+    border-radius: 8px; padding: 14px 18px; margin: 16px 0;
+    font-size: 13px; line-height: 1.7;
+    border-left: 3px solid;
+  }
+  .callout.info   { background: rgba(79,142,247,.07);  border-color: var(--accent);  color: #9CB8F5; }
+  .callout.success{ background: rgba(62,207,142,.07);  border-color: var(--green);   color: #7EE8BC; }
+  .callout.warn   { background: rgba(245,166,35,.07);  border-color: var(--amber);   color: #F5C96A; }
+  .callout.danger { background: rgba(242,96,96,.07);   border-color: var(--red);     color: #F59090; }
+  .callout strong { font-weight: 600; color: inherit; }
+
+  /* ── Metric bar ─────────────────────────────────────────────────────── */
+  .metric-row { display: flex; align-items: center; gap: 12px; margin: 8px 0; }
+  .metric-label { font-size: 12px; color: var(--muted); min-width: 160px; }
+  .metric-bar-wrap { flex: 1; background: var(--bg3); border-radius: 4px; height: 6px; }
+  .metric-bar { height: 6px; border-radius: 4px; }
+  .metric-val { font-size: 12px; color: var(--text); font-family: var(--mono); min-width: 48px; text-align: right; }
+
+  /* ── Step list ───────────────────────────────────────────────────────── */
+  .steps { margin: 16px 0; }
+  .step {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--bg3); border: 1px solid var(--border2);
+    font-size: 11px; font-weight: 700; color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .step-body { flex: 1; }
+  .step-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .step-desc  { font-size: 12px; color: var(--muted); line-height: 1.65; }
+
+  /* ── Scrollbar ───────────────────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 24px 20px; }
+    .card-grid, .card-grid-3 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-title">Research Agent</div>
+    <div class="logo-sub">Agentic AI — All Phases</div>
+  </div>
+
+  <div class="nav-section">Overview</div>
+  <a href="#overview" class="nav-item active">
+    <span class="nav-dot" style="background:var(--accent)"></span> Project map
+  </a>
+  <a href="#concepts" class="nav-item">
+    <span class="nav-dot" style="background:var(--muted)"></span> Core concepts
+  </a>
+
+  <div class="nav-section" style="margin-top:12px">Phases</div>
+  <a href="#phase1" class="nav-item">
+    <span class="nav-dot" style="background:var(--teal)"></span> Phase 1 — Agent loop
+  </a>
+  <a href="#phase2" class="nav-item">
+    <span class="nav-dot" style="background:var(--green)"></span> Phase 2 — Memory
+  </a>
+  <a href="#phase3" class="nav-item">
+    <span class="nav-dot" style="background:var(--amber)"></span> Phase 3 — Caching
+  </a>
+  <a href="#phase4" class="nav-item">
+    <span class="nav-dot" style="background:var(--purple)"></span> Phase 4 — Routing
+  </a>
+  <a href="#phase5" class="nav-item">
+    <span class="nav-dot" style="background:var(--red)"></span> Phase 5 — Evals ★
+  </a>
+
+  <div class="nav-section" style="margin-top:12px">Reference</div>
+  <a href="#stack" class="nav-item">
+    <span class="nav-dot" style="background:var(--muted)"></span> Tech stack
+  </a>
+  <a href="#future" class="nav-item">
+    <span class="nav-dot" style="background:var(--muted)"></span> Multi-agent future
+  </a>
+</nav>
+
+<!-- ── Main ─────────────────────────────────────────────────────────────── -->
+<main class="main">
+
+  <!-- OVERVIEW -->
+  <div class="section" id="overview">
+    <div class="page-title">Agentic AI — Project Reference</div>
+    <div class="page-sub">Research assistant agent · Gemini Flash · 5-phase build · plug-and-play ChatService</div>
+
+    <div class="flow">
+      <div class="flow-box" style="border-color:var(--teal);color:var(--teal)">Phase 1<br><small>ReAct loop</small></div>
+      <div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:var(--green);color:var(--green)">Phase 2<br><small>Memory + RAG</small></div>
+      <div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:var(--amber);color:var(--amber)">Phase 3<br><small>Caching</small></div>
+      <div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:var(--purple);color:var(--purple)">Phase 4<br><small>Routing</small></div>
+      <div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:var(--red);color:var(--red)">Phase 5<br><small>Evals ★</small></div>
+    </div>
+
+    <div class="callout info">
+      <strong>Design principle baked in from day 1:</strong> Every project (research agent, travel agent, anything else)
+      instantiates <code>ChatService(project_id=..., session_id=...)</code> and gets full stateful memory, windowed context,
+      and SQLite persistence for free. The agent, cache, and router sit on top.
+    </div>
+
+    <h3>Full request flow (after all 5 phases)</h3>
+    <div class="flow" style="flex-wrap:wrap;gap:4px">
+      <div class="flow-box">User query</div><div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:var(--purple);color:var(--purple)">Model router<br><small>P4</small></div><div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:var(--amber);color:var(--amber)">L1 cache<br><small>P3</small></div><div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:var(--amber);color:var(--amber)">L2 Redis<br><small>P3</small></div><div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:var(--teal);color:var(--teal)">ReAct loop<br><small>P1</small></div><div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:var(--green);color:var(--green)">Vector memory<br><small>P2</small></div><div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:var(--red);color:var(--red)">Evals / trace<br><small>P5</small></div>
+    </div>
+  </div>
+
+  <!-- CORE CONCEPTS -->
+  <div class="section" id="concepts">
+    <h2>Core concepts map</h2>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-label">Concept</div>
+        <div class="card-title">Token management</div>
+        <div class="card-body">Every token in the prompt costs money and latency. tiktoken counts tokens before each call. Sliding window drops old turns. RAG replaces bulk history with targeted retrieval.</div>
+        <div class="pills"><span class="pill teal">Phase 1–2</span><span class="pill teal">tiktoken</span><span class="pill teal">sliding window</span></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Concept</div>
+        <div class="card-title">Context window management</div>
+        <div class="card-body">The model can only see what fits in its window. Strategy: static system prompt at top (cache-friendly), RAG chunks next, recent turns last. Warn at 85% capacity.</div>
+        <div class="pills"><span class="pill green">Phase 2</span><span class="pill green">RAG</span><span class="pill green">ChromaDB</span></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Concept</div>
+        <div class="card-title">Caching</div>
+        <div class="card-body">L1 in-memory dict (exact, &lt;1ms) → L2 Redis semantic cache (similarity, ~2ms) → LLM (miss, 3–5s). Cache stores per-model. TTL auto-expires stale entries.</div>
+        <div class="pills"><span class="pill amber">Phase 3</span><span class="pill amber">Redis</span><span class="pill amber">cosine sim</span></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Concept</div>
+        <div class="card-title">Model routing</div>
+        <div class="card-body">Cheap classifier call scores complexity: simple/moderate → Flash, complex → Pro. Cost tracker logs tokens and $ per query. Savings become measurable numbers.</div>
+        <div class="pills"><span class="pill purple">Phase 4</span><span class="pill purple">Flash vs Pro</span><span class="pill purple">cost tracker</span></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Concept</div>
+        <div class="card-title">AI security</div>
+        <div class="card-body">Scraped web content is an attack surface. Injection patterns ("ignore all previous instructions") are detected and redacted before entering the prompt. Demonstrated live in Phase 2.</div>
+        <div class="pills"><span class="pill red">Phase 2</span><span class="pill red">sanitiser</span><span class="pill red">injection demo</span></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Concept</div>
+        <div class="card-title">Evals + debugging hallucinations</div>
+        <div class="card-body">Benchmark queries with known answers. LLM-as-judge scoring. Hallucination detection by cross-checking citations against source content. Langfuse tracing shows exactly where it went wrong.</div>
+        <div class="pills"><span class="pill accent">Phase 5</span><span class="pill accent">LLM-as-judge</span><span class="pill accent">Langfuse</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 1 -->
+  <div class="section" id="phase1">
+    <h2>Phase 1 — ReAct loop + tool use</h2>
+    <div class="phase-header">
+      <span class="phase-num" style="background:rgba(45,212,191,.12);color:var(--teal)">Phase 1</span>
+      <div>
+        <div class="phase-title">Bare-bones agent + web search</div>
+        <div class="phase-desc">Core loop working end to end. Model reasons, calls a tool, observes result, decides if done.</div>
+      </div>
+    </div>
+
+    <h3>What ReAct means</h3>
+    <p><strong>Re</strong>asoning + <strong>Act</strong>ing. The model alternates between thinking about what to do next and actually doing it (calling a tool). Each tool result becomes new context for the next reasoning step.</p>
+
+    <div class="flow">
+      <div class="flow-box">User query</div><div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:var(--teal)">Reason<br><small>what do I need?</small></div><div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:var(--teal)">Act<br><small>call tool</small></div><div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:var(--teal)">Observe<br><small>read result</small></div><div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:var(--green)">Done?<br><small>yes → answer</small></div>
+    </div>
+
+    <h3>Key files</h3>
+    <table>
+      <tr><th>File</th><th>Purpose</th><th>Concept taught</th></tr>
+      <tr><td>agent/react_agent.py</td><td>ReAct loop, tool dispatch</td><td>Agent loop, function calling</td></tr>
+      <tr><td>tools/web_search.py</td><td>Tavily search tool</td><td>Tool definition schema</td></tr>
+      <tr><td>chat/service.py</td><td>SQLite state persistence</td><td>Stateful sessions, project namespacing</td></tr>
+      <tr><td>config.py</td><td>Central settings</td><td>Single source of truth</td></tr>
+    </table>
+
+    <div class="callout success">
+      <strong>What you proved works:</strong> The agent calls web_search multiple times, chains the results,
+      and produces a synthesized answer — without you writing any of the reasoning logic. That's the power of the ReAct pattern.
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="section" id="phase2">
+    <h2>Phase 2 — Memory, context management, security</h2>
+    <div class="phase-header">
+      <span class="phase-num" style="background:rgba(62,207,142,.12);color:var(--green)">Phase 2</span>
+      <div>
+        <div class="phase-title">ChromaDB RAG memory · sliding window · injection defence</div>
+        <div class="phase-desc">The agent now remembers past findings and never overflows its context.</div>
+      </div>
+    </div>
+
+    <h3>Three problems solved</h3>
+    <div class="card-grid card-grid-3">
+      <div class="card">
+        <div class="card-title">Context overflow</div>
+        <div class="card-body">tiktoken counts tokens before every call. Sliding window keeps last 10 turns. Summary compresses older turns so nothing is completely lost.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">No long-term memory</div>
+        <div class="card-body">Tool results are chunked (400 chars, 20% overlap) and stored in ChromaDB as embeddings. Top-K relevant chunks retrieved per query.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Prompt injection</div>
+        <div class="card-body">Scraped content is sanitised before entering the prompt. Regex patterns catch "ignore previous instructions" style attacks and redact them.</div>
+      </div>
+    </div>
+
+    <h3>Context hierarchy (what goes in the prompt, in order)</h3>
+    <div class="flow" style="flex-direction:column;align-items:flex-start;gap:6px">
+      <div class="flow-box" style="width:100%;border-color:var(--purple)">1. System prompt — static, always first, cache-friendly</div>
+      <div class="flow-box" style="width:100%;border-color:var(--green)">2. RAG chunks — top-K retrieved from ChromaDB for this query</div>
+      <div class="flow-box" style="width:100%;border-color:var(--teal)">3. Sliding window — last 10 turns of conversation</div>
+      <div class="flow-box" style="width:100%;border-color:var(--accent)">4. Current user message</div>
+    </div>
+
+    <div class="callout warn">
+      <strong>Chunking insight:</strong> Embeddings work best on small, focused text. A 5000-word article stored as one unit
+      produces a blurry embedding that matches nothing well. Split into 400-char overlapping chunks — each chunk is
+      semantically precise, and overlap ensures sentences at boundaries aren't lost.
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="section" id="phase3">
+    <h2>Phase 3 — Two-layer caching</h2>
+    <div class="phase-header">
+      <span class="phase-num" style="background:rgba(245,166,35,.12);color:var(--amber)">Phase 3</span>
+      <div>
+        <div class="phase-title">L1 in-memory + L2 Redis semantic cache</div>
+        <div class="phase-desc">Skip the LLM entirely for repeated or similar queries. Savings become measurable.</div>
+      </div>
+    </div>
+
+    <h3>The two-layer model</h3>
+    <div class="card-grid">
+      <div class="card" style="border-top:3px solid var(--accent)">
+        <div class="card-title">L1 — in-memory dict (LRU)</div>
+        <div class="card-body">
+          Python <code>OrderedDict</code>. Exact string match on (query + model). Sub-millisecond.
+          Evicts oldest when full (max 100 entries). Wiped on restart — that's fine and expected.
+          <br><br><strong>Key:</strong> <code>"{model}::{query.lower()}"</code>
+        </div>
+        <div class="pills"><span class="pill accent">&lt;1ms</span><span class="pill">process-local</span><span class="pill">LRU eviction</span></div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--green)">
+        <div class="card-title">L2 — Redis semantic cache</div>
+        <div class="card-body">
+          Stores <code>(query_embedding, answer)</code> in Redis with TTL.
+          On lookup: embed the new query → cosine similarity against all cached entries →
+          if best score ≥ 0.85, return cached answer. Survives restarts. Shared across future workers.
+        </div>
+        <div class="pills"><span class="pill green">~2ms</span><span class="pill">survives restart</span><span class="pill">TTL auto-expire</span></div>
+      </div>
+    </div>
+
+    <h3>Semantic similarity — the key insight</h3>
+    <p>The embedding model converts a query to a 384-dimensional vector. Cosine similarity between two vectors measures how close their <em>meanings</em> are, regardless of exact wording.</p>
+
+    <table>
+      <tr><th>Query</th><th>Score vs cached "how to become a good AI engineer"</th><th>Result</th></tr>
+      <tr><td>steps to become an AI engineer</td><td>0.94</td><td><span class="pill green">HIT ✓</span></td></tr>
+      <tr><td>AI engineer career guide</td><td>0.88</td><td><span class="pill green">HIT ✓</span></td></tr>
+      <tr><td>tips for ML engineers</td><td>0.81</td><td><span class="pill amber">BORDERLINE</span></td></tr>
+      <tr><td>what is quantum computing</td><td>0.12</td><td><span class="pill red">MISS ✗</span></td></tr>
+    </table>
+
+    <h3>Threshold tuning</h3>
+    <div class="metric-row"><div class="metric-label">0.98 — too strict, nearly useless</div><div class="metric-bar-wrap"><div class="metric-bar" style="width:8%;background:var(--red)"></div></div><div class="metric-val">~5% hit</div></div>
+    <div class="metric-row"><div class="metric-label">0.85 — production sweet spot</div><div class="metric-bar-wrap"><div class="metric-bar" style="width:65%;background:var(--green)"></div></div><div class="metric-val">~65% hit</div></div>
+    <div class="metric-row"><div class="metric-label">0.70 — too loose, wrong answers</div><div class="metric-bar-wrap"><div class="metric-bar" style="width:90%;background:var(--amber)"></div></div><div class="metric-val">~90% hit</div></div>
+
+    <div class="callout info">
+      <strong>TTL design decision:</strong> Not all answers age the same way.
+      "How does RAG work?" → stable, TTL = 24h.
+      "Latest AI frameworks in 2025" → stale fast, TTL = 1h or skip cache entirely.
+      In Phase 5 evals, you'll catch cases where a stale cache answer caused a hallucination.
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="section" id="phase4">
+    <h2>Phase 4 — Model routing</h2>
+    <div class="phase-header">
+      <span class="phase-num" style="background:rgba(155,127,232,.12);color:var(--purple)">Phase 4</span>
+      <div>
+        <div class="phase-title">Complexity classifier → Flash vs Pro routing</div>
+        <div class="phase-desc">Right model for the right task. Cost savings visible in real numbers.</div>
+      </div>
+    </div>
+
+    <h3>Why routing matters</h3>
+    <p>Gemini Pro costs ~47× more per token than Flash. If 70% of queries are simple lookups, routing them to Flash cuts your bill dramatically without touching answer quality.</p>
+
+    <div class="card-grid card-grid-3">
+      <div class="card">
+        <div class="card-title">simple</div>
+        <div class="card-body">Quick fact, definition, single-hop answer. "What is RAG?", "Define embeddings".</div>
+        <div class="pills"><span class="pill teal">→ Flash</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">moderate</div>
+        <div class="card-body">Comparison, explanation, 2–3 step reasoning. "RAG vs fine-tuning", "How does attention work?"</div>
+        <div class="pills"><span class="pill teal">→ Flash</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">complex</div>
+        <div class="card-body">Deep analysis, synthesis across many sources, planning tasks. "Build a research plan for agentic AI".</div>
+        <div class="pills"><span class="pill purple">→ Pro</span></div>
+      </div>
+    </div>
+
+    <h3>The routing flow</h3>
+    <div class="flow">
+      <div class="flow-box">Query</div><div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:var(--amber)">Classifier<br><small>~50 tokens</small></div><div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:var(--purple)">simple/moderate/complex</div><div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:var(--teal)">Flash or Pro</div><div class="flow-arr">→</div>
+      <div class="flow-box">Cost logged</div>
+    </div>
+
+    <h3>Cost comparison (estimated)</h3>
+    <table>
+      <tr><th>Model</th><th>Cost / 1M tokens</th><th>Best for</th></tr>
+      <tr><td>gemini-2.0-flash</td><td>$0.075</td><td>Simple + moderate queries (majority)</td></tr>
+      <tr><td>gemini-1.5-pro</td><td>$3.50</td><td>Complex multi-step analysis only</td></tr>
+    </table>
+
+    <div class="callout success">
+      <strong>Meta-routing trick:</strong> The classifier itself is a tiny Flash call (~50 tokens).
+      The cost of routing is negligible compared to the savings when it correctly avoids a Pro call.
+    </div>
+  </div>
+
+  <!-- PHASE 5 ★ -->
+  <div class="section" id="phase5">
+    <h2>Phase 5 — Observability, evals, hallucination debugging ★</h2>
+    <div class="phase-header">
+      <span class="phase-num" style="background:rgba(242,96,96,.12);color:var(--red)">Phase 5</span>
+      <div>
+        <div class="phase-title">Langfuse tracing · LLM-as-judge · hallucination detection</div>
+        <div class="phase-desc">Prove your agent works. Know when it breaks. Know exactly why.</div>
+      </div>
+    </div>
+
+    <h3>What Phase 5 adds</h3>
+    <div class="card-grid">
+      <div class="card" style="border-top:3px solid var(--red)">
+        <div class="card-title">Observability — Langfuse</div>
+        <div class="card-body">Every LLM call and tool call wrapped in a trace span. See: what prompt went in, what came out, how many tokens, how long it took. Visible in Langfuse UI. Retrofitted across all phases.</div>
+        <div class="pills"><span class="pill red">langfuse</span><span class="pill red">spans</span><span class="pill red">token counts</span></div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent)">
+        <div class="card-title">Eval harness</div>
+        <div class="card-body">10 benchmark queries with known correct answers. Agent runs each one. LLM-as-judge scores the response on accuracy, completeness, and hallucination. Results written to SQLite.</div>
+        <div class="pills"><span class="pill accent">LLM-as-judge</span><span class="pill accent">benchmark</span><span class="pill accent">pytest</span></div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--amber)">
+        <div class="card-title">Hallucination detection</div>
+        <div class="card-body">For each cited claim, check if the claim appears in the source content the agent actually retrieved. If not → flagged hallucination. Cross-reference stored ChromaDB chunks.</div>
+        <div class="pills"><span class="pill amber">citation check</span><span class="pill amber">source grounding</span></div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--green)">
+        <div class="card-title">Regression guard</div>
+        <div class="card-body">Run the eval suite after every change (new prompt, new cache threshold, new model). If score drops → you broke something. CI-friendly: exits non-zero if pass rate falls below threshold.</div>
+        <div class="pills"><span class="pill green">regression</span><span class="pill green">CI gate</span></div>
+      </div>
+    </div>
+
+    <h3>New files added</h3>
+    <table>
+      <tr><th>File</th><th>Purpose</th></tr>
+      <tr><td>evals/benchmark.py</td><td>10 benchmark Q&amp;A pairs with expected answers</td></tr>
+      <tr><td>evals/judge.py</td><td>LLM-as-judge: scores accuracy, completeness, hallucination</td></tr>
+      <tr><td>evals/hallucination.py</td><td>Cross-checks agent citations against retrieved source chunks</td></tr>
+      <tr><td>evals/runner.py</td><td>Runs all benchmarks, logs scores to SQLite, prints report</td></tr>
+      <tr><td>observability/tracer.py</td><td>Langfuse wrapper — wraps LLM calls and tool calls as spans</td></tr>
+    </table>
+
+    <!-- Phase 5 IMPLEMENTATION -->
+    <h3>Install</h3>
+    <pre>pip install langfuse pytest</pre>
+
+    <p>Sign up at <code>cloud.langfuse.com</code> (free tier) and add to your <code>.env</code>:</p>
+    <pre>LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_SECRET_KEY=sk-lf-...
+LANGFUSE_HOST=https://cloud.langfuse.com</pre>
+
+    <p>Add to <code>config.py</code>:</p>
+    <pre><span class="kw">import</span> os
+LANGFUSE_PUBLIC_KEY = os.getenv(<span class="st">"LANGFUSE_PUBLIC_KEY"</span>)
+LANGFUSE_SECRET_KEY = os.getenv(<span class="st">"LANGFUSE_SECRET_KEY"</span>)
+LANGFUSE_HOST       = os.getenv(<span class="st">"LANGFUSE_HOST"</span>)
+EVAL_PASS_THRESHOLD = <span class="num">0.7</span>   <span class="cm"># 70% of benchmarks must pass</span>
+HALLUCINATION_THRESHOLD = <span class="num">0.4</span> <span class="cm"># similarity below this = hallucination flag</span></pre>
+
+    <div class="code-label">observability/tracer.py</div>
+    <pre><span class="kw">from</span> langfuse <span class="kw">import</span> Langfuse
+<span class="kw">from</span> langfuse.decorators <span class="kw">import</span> langfuse_context, observe
+<span class="kw">from</span> config <span class="kw">import</span> LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST
+<span class="kw">import</span> functools, time
+
+_client = Langfuse(
+    public_key=LANGFUSE_PUBLIC_KEY,
+    secret_key=LANGFUSE_SECRET_KEY,
+    host=LANGFUSE_HOST
+)
+
+<span class="kw">def</span> <span class="fn">trace_llm_call</span>(fn):
+    <span class="st">"""
+    Decorator — wraps any function that calls the LLM.
+    Records: input prompt, output, latency, token estimates.
+    Usage: @trace_llm_call above run_agent()
+    """</span>
+    @functools.wraps(fn)
+    <span class="kw">def</span> <span class="fn">wrapper</span>(*args, **kwargs):
+        start = time.time()
+        trace = _client.trace(name=fn.__name__, input=str(kwargs))
+        span  = trace.span(name=<span class="st">"llm_call"</span>)
+        <span class="kw">try</span>:
+            result = fn(*args, **kwargs)
+            span.end(output=result[:500], metadata={
+                <span class="st">"latency_ms"</span>: <span class="fn">int</span>((time.time() - start) * <span class="num">1000</span>),
+            })
+            trace.update(output=result[:200])
+            <span class="kw">return</span> result
+        <span class="kw">except</span> Exception <span class="kw">as</span> e:
+            span.end(level=<span class="st">"ERROR"</span>, status_message=<span class="fn">str</span>(e))
+            <span class="kw">raise</span>
+    <span class="kw">return</span> wrapper
+
+
+<span class="kw">def</span> <span class="fn">trace_tool_call</span>(tool_name: str, query: str, result: str, latency_ms: int):
+    <span class="st">"""Log a single tool call as a Langfuse event."""</span>
+    _client.event(
+        name=<span class="st">f"tool:{tool_name}"</span>,
+        input={<span class="st">"query"</span>: query},
+        output={<span class="st">"result_chars"</span>: <span class="fn">len</span>(result), <span class="st">"preview"</span>: result[:<span class="num">200</span>]},
+        metadata={<span class="st">"latency_ms"</span>: latency_ms}
+    )
+
+
+<span class="kw">def</span> <span class="fn">flush</span>():
+    <span class="st">"""Call at end of session to ensure all events are sent."""</span>
+    _client.flush()</pre>
+
+    <div class="code-label">evals/benchmark.py</div>
+    <pre><span class="cm"># 10 benchmark queries — expected_keywords must ALL appear in the answer</span>
+<span class="cm"># for a pass. Add more as your agent matures.</span>
+
+BENCHMARKS = [
+    {
+        <span class="st">"id"</span>: <span class="st">"b01"</span>,
+        <span class="st">"query"</span>: <span class="st">"What is RAG in AI?"</span>,
+        <span class="st">"expected_keywords"</span>: [<span class="st">"retrieval"</span>, <span class="st">"augmented"</span>, <span class="st">"generation"</span>, <span class="st">"vector"</span>],
+        <span class="st">"should_not_contain"</span>: [<span class="st">"I don't know"</span>, <span class="st">"I cannot"</span>],
+        <span class="st">"category"</span>: <span class="st">"factual"</span>
+    },
+    {
+        <span class="st">"id"</span>: <span class="st">"b02"</span>,
+        <span class="st">"query"</span>: <span class="st">"What is the difference between RAG and fine-tuning?"</span>,
+        <span class="st">"expected_keywords"</span>: [<span class="st">"fine-tuning"</span>, <span class="st">"retrieval"</span>, <span class="st">"training"</span>, <span class="st">"cost"</span>],
+        <span class="st">"should_not_contain"</span>: [],
+        <span class="st">"category"</span>: <span class="st">"comparison"</span>
+    },
+    {
+        <span class="st">"id"</span>: <span class="st">"b03"</span>,
+        <span class="st">"query"</span>: <span class="st">"What is a vector database?"</span>,
+        <span class="st">"expected_keywords"</span>: [<span class="st">"embedding"</span>, <span class="st">"similarity"</span>, <span class="st">"search"</span>],
+        <span class="st">"should_not_contain"</span>: [],
+        <span class="st">"category"</span>: <span class="st">"factual"</span>
+    },
+    {
+        <span class="st">"id"</span>: <span class="st">"b04"</span>,
+        <span class="st">"query"</span>: <span class="st">"How does cosine similarity work?"</span>,
+        <span class="st">"expected_keywords"</span>: [<span class="st">"vector"</span>, <span class="st">"angle"</span>, <span class="st">"dot product"</span>],
+        <span class="st">"should_not_contain"</span>: [],
+        <span class="st">"category"</span>: <span class="st">"factual"</span>
+    },
+    {
+        <span class="st">"id"</span>: <span class="st">"b05"</span>,
+        <span class="st">"query"</span>: <span class="st">"What is the ReAct pattern in AI agents?"</span>,
+        <span class="st">"expected_keywords"</span>: [<span class="st">"reasoning"</span>, <span class="st">"acting"</span>, <span class="st">"tool"</span>, <span class="st">"observation"</span>],
+        <span class="st">"should_not_contain"</span>: [],
+        <span class="st">"category"</span>: <span class="st">"factual"</span>
+    },
+    {
+        <span class="st">"id"</span>: <span class="st">"b06"</span>,
+        <span class="st">"query"</span>: <span class="st">"What is prompt injection in AI systems?"</span>,
+        <span class="st">"expected_keywords"</span>: [<span class="st">"injection"</span>, <span class="st">"malicious"</span>, <span class="st">"instructions"</span>, <span class="st">"attack"</span>],
+        <span class="st">"should_not_contain"</span>: [],
+        <span class="st">"category"</span>: <span class="st">"security"</span>
+    },
+    {
+        <span class="st">"id"</span>: <span class="st">"b07"</span>,
+        <span class="st">"query"</span>: <span class="st">"What is LangGraph used for?"</span>,
+        <span class="st">"expected_keywords"</span>: [<span class="st">"graph"</span>, <span class="st">"agent"</span>, <span class="st">"state"</span>],
+        <span class="st">"should_not_contain"</span>: [],
+        <span class="st">"category"</span>: <span class="st">"factual"</span>
+    },
+    {
+        <span class="st">"id"</span>: <span class="st">"b08"</span>,
+        <span class="st">"query"</span>: <span class="st">"What is the difference between ChromaDB and Pinecone?"</span>,
+        <span class="st">"expected_keywords"</span>: [<span class="st">"chroma"</span>, <span class="st">"pinecone"</span>, <span class="st">"local"</span>, <span class="st">"cloud"</span>],
+        <span class="st">"should_not_contain"</span>: [],
+        <span class="st">"category"</span>: <span class="st">"comparison"</span>
+    },
+    {
+        <span class="st">"id"</span>: <span class="st">"b09"</span>,
+        <span class="st">"query"</span>: <span class="st">"What is token budgeting in LLMs?"</span>,
+        <span class="st">"expected_keywords"</span>: [<span class="st">"token"</span>, <span class="st">"context"</span>, <span class="st">"limit"</span>, <span class="st">"cost"</span>],
+        <span class="st">"should_not_contain"</span>: [],
+        <span class="st">"category"</span>: <span class="st">"factual"</span>
+    },
+    {
+        <span class="st">"id"</span>: <span class="st">"b10"</span>,
+        <span class="st">"query"</span>: <span class="st">"What is human-in-the-loop in agentic AI?"</span>,
+        <span class="st">"expected_keywords"</span>: [<span class="st">"human"</span>, <span class="st">"approval"</span>, <span class="st">"review"</span>, <span class="st">"oversight"</span>],
+        <span class="st">"should_not_contain"</span>: [],
+        <span class="st">"category"</span>: <span class="st">"factual"</span>
+    },
+]</pre>
+
+    <div class="code-label">evals/judge.py</div>
+    <pre><span class="kw">import</span> google.generativeai <span class="kw">as</span> genai
+<span class="kw">from</span> config <span class="kw">import</span> GEMINI_API_KEY, GEMINI_FLASH_MODEL
+<span class="kw">import</span> json, re
+
+genai.configure(api_key=GEMINI_API_KEY)
+
+_JUDGE_PROMPT = <span class="st">"""You are an impartial eval judge for an AI research agent.
+
+Given a question and the agent's answer, score it on three axes:
+1. accuracy     (0-10): Is the answer factually correct?
+2. completeness (0-10): Does it cover the key aspects of the question?
+3. hallucination_risk (0-10): 10 = definitely hallucinated, 0 = well-grounded
+
+Also write one sentence explaining your scores.
+
+Reply in valid JSON only, no markdown:
+{"accuracy": N, "completeness": N, "hallucination_risk": N, "reason": "..."}"""</span>
+
+
+<span class="kw">def</span> <span class="fn">judge</span>(question: str, answer: str) -> dict:
+    <span class="st">"""Score a single agent answer. Returns score dict."""</span>
+    model = genai.GenerativeModel(GEMINI_FLASH_MODEL)
+    prompt = <span class="st">f"Question: {question}\n\nAgent answer:\n{answer}"</span>
+    <span class="kw">try</span>:
+        resp = model.generate_content(
+            [_JUDGE_PROMPT, prompt],
+            generation_config={<span class="st">"temperature"</span>: <span class="num">0</span>}
+        )
+        text = resp.text.strip()
+        text = re.sub(<span class="st">r'```json|```'</span>, <span class="st">''</span>, text).strip()
+        <span class="kw">return</span> json.loads(text)
+    <span class="kw">except</span> Exception <span class="kw">as</span> e:
+        <span class="kw">return</span> {<span class="st">"accuracy"</span>: <span class="num">0</span>, <span class="st">"completeness"</span>: <span class="num">0</span>,
+                <span class="st">"hallucination_risk"</span>: <span class="num">10</span>, <span class="st">"reason"</span>: <span class="fn">str</span>(e)}
+
+
+<span class="kw">def</span> <span class="fn">keyword_check</span>(answer: str, benchmark: dict) -> dict:
+    <span class="st">"""
+    Fast deterministic check — no LLM needed.
+    Returns {passed: bool, missing: list, forbidden_found: list}
+    """</span>
+    answer_lower = answer.lower()
+    missing = [kw <span class="kw">for</span> kw <span class="kw">in</span> benchmark[<span class="st">"expected_keywords"</span>]
+               <span class="kw">if</span> kw.lower() <span class="kw">not in</span> answer_lower]
+    forbidden = [kw <span class="kw">for</span> kw <span class="kw">in</span> benchmark.get(<span class="st">"should_not_contain"</span>, [])
+                 <span class="kw">if</span> kw.lower() <span class="kw">in</span> answer_lower]
+    <span class="kw">return</span> {
+        <span class="st">"passed"</span>: <span class="kw">not</span> missing <span class="kw">and not</span> forbidden,
+        <span class="st">"missing_keywords"</span>: missing,
+        <span class="st">"forbidden_found"</span>: forbidden
+    }</pre>
+
+    <div class="code-label">evals/hallucination.py</div>
+    <pre><span class="kw">from</span> memory.vector_store <span class="kw">import</span> VectorMemory
+<span class="kw">from</span> sentence_transformers <span class="kw">import</span> SentenceTransformer
+<span class="kw">from</span> config <span class="kw">import</span> EMBEDDING_MODEL, HALLUCINATION_THRESHOLD
+<span class="kw">import</span> numpy <span class="kw">as</span> np, re
+
+_model = SentenceTransformer(EMBEDDING_MODEL)
+
+
+<span class="kw">def</span> <span class="fn">_cosine</span>(a, b) -> float:
+    a, b = np.array(a), np.array(b)
+    <span class="kw">return</span> float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b) + <span class="num">1e-9</span>))
+
+
+<span class="kw">def</span> <span class="fn">extract_claims</span>(answer: str) -> list[str]:
+    <span class="st">"""
+    Split answer into individual sentences to check each claim.
+    Simple heuristic: split on sentence boundaries.
+    """</span>
+    sentences = re.split(<span class="st">r'(?&lt;=[.!?])\s+'</span>, answer.strip())
+    <span class="kw">return</span> [s.strip() <span class="kw">for</span> s <span class="kw">in</span> sentences <span class="kw">if</span> <span class="fn">len</span>(s) > <span class="num">30</span>]
+
+
+<span class="kw">def</span> <span class="fn">check_hallucination</span>(
+    answer: str,
+    session_id: str,
+    project_id: str
+) -> dict:
+    <span class="st">"""
+    For each sentence in the answer, check if it's grounded in
+    the agent's retrieved source chunks (stored in ChromaDB).
+
+    A sentence with no similar chunk in memory is a hallucination flag.
+    Returns: {flagged: bool, risky_claims: list, grounded_claims: list}
+    """</span>
+    memory = VectorMemory(project_id)
+    claims = extract_claims(answer)
+    risky, grounded = [], []
+
+    <span class="kw">for</span> claim <span class="kw">in</span> claims:
+        claim_vec = _model.encode(claim).tolist()
+        <span class="cm"># Pull top-1 from memory</span>
+        results = memory._collection.query(
+            query_texts=[claim],
+            n_results=<span class="num">1</span>,
+            where={<span class="st">"session_id"</span>: session_id}
+        )
+        docs = results.get(<span class="st">"documents"</span>, [[]])[<span class="num">0</span>]
+        <span class="kw">if not</span> docs:
+            risky.append({<span class="st">"claim"</span>: claim, <span class="st">"score"</span>: <span class="num">0.0</span>, <span class="st">"source"</span>: <span class="st">"no memory"</span>})
+            <span class="kw">continue</span>
+
+        source_vec = _model.encode(docs[<span class="num">0</span>]).tolist()
+        score = _cosine(claim_vec, source_vec)
+
+        <span class="kw">if</span> score < HALLUCINATION_THRESHOLD:
+            risky.append({<span class="st">"claim"</span>: claim[:100], <span class="st">"score"</span>: <span class="fn">round</span>(score, <span class="num">3</span>), <span class="st">"source"</span>: docs[<span class="num">0</span>][:<span class="num">80</span>]})
+        <span class="kw">else</span>:
+            grounded.append({<span class="st">"claim"</span>: claim[:<span class="num">100</span>], <span class="st">"score"</span>: <span class="fn">round</span>(score, <span class="num">3</span>)})
+
+    <span class="kw">return</span> {
+        <span class="st">"flagged"</span>: <span class="fn">len</span>(risky) > <span class="num">0</span>,
+        <span class="st">"risky_claims"</span>: risky,
+        <span class="st">"grounded_claims"</span>: grounded,
+        <span class="st">"hallucination_rate"</span>: <span class="fn">round</span>(<span class="fn">len</span>(risky) / <span class="fn">max</span>(<span class="fn">len</span>(claims), <span class="num">1</span>), <span class="num">2</span>)
+    }</pre>
+
+    <div class="code-label">evals/runner.py</div>
+    <pre><span class="kw">import</span> sqlite3, json
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+<span class="kw">from</span> chat.service <span class="kw">import</span> ChatService
+<span class="kw">from</span> agent.react_agent <span class="kw">import</span> run_agent
+<span class="kw">from</span> cache.cache_manager <span class="kw">import</span> CacheManager
+<span class="kw">from</span> router.model_router <span class="kw">import</span> ModelRouter
+<span class="kw">from</span> evals.benchmark <span class="kw">import</span> BENCHMARKS
+<span class="kw">from</span> evals.judge <span class="kw">import</span> judge, keyword_check
+<span class="kw">from</span> evals.hallucination <span class="kw">import</span> check_hallucination
+<span class="kw">from</span> config <span class="kw">import</span> DB_PATH, EVAL_PASS_THRESHOLD
+
+PROJECT_ID = <span class="st">"research_agent_eval"</span>  <span class="cm"># separate project so evals don't pollute prod</span>
+
+
+<span class="kw">def</span> <span class="fn">_init_db</span>():
+    <span class="kw">with</span> sqlite3.connect(DB_PATH) <span class="kw">as</span> conn:
+        conn.execute(<span class="st">"""
+            CREATE TABLE IF NOT EXISTS eval_results (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_ts      TEXT,
+                benchmark_id TEXT,
+                query       TEXT,
+                answer      TEXT,
+                kw_passed   INTEGER,
+                accuracy    REAL,
+                completeness REAL,
+                hallucination_risk REAL,
+                hallucination_rate REAL,
+                judge_reason TEXT
+            )"""</span>)
+
+
+<span class="kw">def</span> <span class="fn">run_evals</span>(verbose: bool = True):
+    _init_db()
+    router  = ModelRouter()
+    cache   = CacheManager()
+    run_ts  = datetime.utcnow().isoformat()
+    results = []
+
+    print(<span class="st">f"\n{'='*60}"</span>)
+    print(<span class="st">f"  EVAL RUN — {run_ts}"</span>)
+    print(<span class="st">f"{'='*60}\n"</span>)
+
+    <span class="kw">for</span> bench <span class="kw">in</span> BENCHMARKS:
+        bid   = bench[<span class="st">"id"</span>]
+        query = bench[<span class="st">"query"</span>]
+        print(<span class="st">f"[{bid}] {query}"</span>)
+
+        <span class="cm"># Fresh session per benchmark so no cross-contamination</span>
+        chat = ChatService(project_id=PROJECT_ID)
+        sid  = chat.get_session_id()
+
+        model_name, _ = router.route(query)
+
+        <span class="cm"># Skip cache for evals — we want a real agent run every time</span>
+        chat.save_message(<span class="st">"user"</span>, query)
+        answer = run_agent(
+            user_query=query,
+            history=chat.build_context(),
+            session_id=sid,
+            project_id=PROJECT_ID,
+            model_name=model_name
+        )
+        chat.save_message(<span class="st">"assistant"</span>, answer)
+
+        <span class="cm"># ── Score it ──────────────────────────────────────────────</span>
+        kw_result   = keyword_check(answer, bench)
+        llm_scores  = judge(query, answer)
+        hall_result = check_hallucination(answer, sid, PROJECT_ID)
+
+        row = {
+            <span class="st">"run_ts"</span>: run_ts, <span class="st">"benchmark_id"</span>: bid, <span class="st">"query"</span>: query,
+            <span class="st">"answer"</span>: answer,
+            <span class="st">"kw_passed"</span>: <span class="fn">int</span>(kw_result[<span class="st">"passed"</span>]),
+            <span class="st">"accuracy"</span>: llm_scores.get(<span class="st">"accuracy"</span>, <span class="num">0</span>),
+            <span class="st">"completeness"</span>: llm_scores.get(<span class="st">"completeness"</span>, <span class="num">0</span>),
+            <span class="st">"hallucination_risk"</span>: llm_scores.get(<span class="st">"hallucination_risk"</span>, <span class="num">10</span>),
+            <span class="st">"hallucination_rate"</span>: hall_result[<span class="st">"hallucination_rate"</span>],
+            <span class="st">"judge_reason"</span>: llm_scores.get(<span class="st">"reason"</span>, <span class="st">""</span>)
+        }
+        results.append(row)
+
+        <span class="kw">with</span> sqlite3.connect(DB_PATH) <span class="kw">as</span> conn:
+            conn.execute(<span class="st">"""INSERT INTO eval_results
+                (run_ts,benchmark_id,query,answer,kw_passed,accuracy,
+                 completeness,hallucination_risk,hallucination_rate,judge_reason)
+                VALUES (:run_ts,:benchmark_id,:query,:answer,:kw_passed,
+                        :accuracy,:completeness,:hallucination_risk,
+                        :hallucination_rate,:judge_reason)"""</span>, row)
+
+        status = <span class="st">"✓"</span> <span class="kw">if</span> kw_result[<span class="st">"passed"</span>] <span class="kw">else</span> <span class="st">"✗"</span>
+        <span class="kw">if</span> verbose:
+            print(<span class="st">f"  {status} kw={kw_result['passed']} | "</span>
+                  <span class="st">f"acc={row['accuracy']}/10 | "</span>
+                  <span class="st">f"hall_risk={row['hallucination_risk']}/10 | "</span>
+                  <span class="st">f"hall_rate={row['hallucination_rate']}"</span>)
+            <span class="kw">if</span> hall_result[<span class="st">"risky_claims"</span>]:
+                print(<span class="st">f"  ⚠ Risky claims:"</span>)
+                <span class="kw">for</span> rc <span class="kw">in</span> hall_result[<span class="st">"risky_claims"</span>][:<span class="num">2</span>]:
+                    print(<span class="st">f"    - [{rc['score']}] {rc['claim']}"</span>)
+        print()
+
+    <span class="cm"># ── Summary ───────────────────────────────────────────────────────</span>
+    passed     = <span class="fn">sum</span>(<span class="num">1</span> <span class="kw">for</span> r <span class="kw">in</span> results <span class="kw">if</span> r[<span class="st">"kw_passed"</span>])
+    pass_rate  = passed / <span class="fn">len</span>(results)
+    avg_acc    = <span class="fn">sum</span>(r[<span class="st">"accuracy"</span>] <span class="kw">for</span> r <span class="kw">in</span> results) / <span class="fn">len</span>(results)
+    avg_hall   = <span class="fn">sum</span>(r[<span class="st">"hallucination_risk"</span>] <span class="kw">for</span> r <span class="kw">in</span> results) / <span class="fn">len</span>(results)
+
+    print(<span class="st">f"{'='*60}"</span>)
+    print(<span class="st">f"  RESULTS: {passed}/{len(results)} passed ({pass_rate*100:.0f}%)"</span>)
+    print(<span class="st">f"  Avg accuracy:          {avg_acc:.1f}/10"</span>)
+    print(<span class="st">f"  Avg hallucination risk: {avg_hall:.1f}/10"</span>)
+    print(<span class="st">f"  Threshold:             {EVAL_PASS_THRESHOLD*100:.0f}%"</span>)
+
+    <span class="kw">if</span> pass_rate >= EVAL_PASS_THRESHOLD:
+        print(<span class="st">f"  STATUS: ✓ PASS"</span>)
+    <span class="kw">else</span>:
+        print(<span class="st">f"  STATUS: ✗ FAIL — below {EVAL_PASS_THRESHOLD*100:.0f}% threshold"</span>)
+        <span class="kw">import</span> sys; sys.exit(<span class="num">1</span>)   <span class="cm"># CI gate</span>
+    print(<span class="st">f"{'='*60}\n"</span>)
+    <span class="kw">return</span> results
+
+
+<span class="kw">if</span> __name__ == <span class="st">"__main__"</span>:
+    run_evals()</pre>
+
+    <div class="code-label">Add @trace_llm_call to agent/react_agent.py</div>
+    <pre><span class="kw">from</span> observability.tracer <span class="kw">import</span> trace_llm_call, trace_tool_call, flush
+
+<span class="cm"># Add decorator above run_agent:</span>
+@trace_llm_call
+<span class="kw">def</span> <span class="fn">run_agent</span>(user_query: str, history: list[dict],
+              session_id: str, project_id: str,
+              model_name: str = <span class="kw">None</span>) -> str:
+    ...
+    <span class="cm"># Inside the tool call block, add latency tracking:</span>
+    <span class="kw">import</span> time
+    t0 = time.time()
+    clean_result = TOOL_REGISTRY[fn_name](**fn_args)
+    trace_tool_call(
+        tool_name=fn_name,
+        query=<span class="fn">str</span>(fn_args),
+        result=clean_result,
+        latency_ms=<span class="fn">int</span>((time.time()-t0)*<span class="num">1000</span>)
+    )
+
+<span class="cm"># In main.py, at exit:</span>
+<span class="kw">from</span> observability.tracer <span class="kw">import</span> flush
+flush()  <span class="cm"># ensure all Langfuse events are sent</span></pre>
+
+    <h3>Run the eval suite</h3>
+    <pre>python -m evals.runner</pre>
+
+    <div class="callout success">
+      <strong>Expected output:</strong> You'll see each benchmark run, keyword check results,
+      judge scores, and any flagged risky claims. The CI gate exits non-zero if pass rate drops below 70%
+      — so you can add this to a GitHub Action and catch regressions automatically.
+    </div>
+
+    <div class="callout warn">
+      <strong>Debugging a hallucination:</strong> When you see a risky claim flagged, open Langfuse,
+      find that trace, and look at what web search results actually came back. 9 times out of 10
+      the agent made up a detail that wasn't in any retrieved chunk. Fix: tighten the system prompt
+      to say "only state facts present in the search results", re-run evals, verify score improves.
+    </div>
+  </div>
+
+  <!-- STACK -->
+  <div class="section" id="stack">
+    <h2>Tech stack reference</h2>
+    <table>
+      <tr><th>Layer</th><th>Tool</th><th>Why</th></tr>
+      <tr><td>LLM</td><td>Gemini Flash / Pro</td><td>Free tier, excellent tool use, large context</td></tr>
+      <tr><td>Web search tool</td><td>Tavily API</td><td>Built for LLM agents, returns clean markdown</td></tr>
+      <tr><td>State persistence</td><td>SQLite</td><td>Zero infra, survives restarts, project-namespaced</td></tr>
+      <tr><td>Vector memory</td><td>ChromaDB</td><td>Local, no setup, persistent embeddings</td></tr>
+      <tr><td>Embeddings</td><td>sentence-transformers</td><td>Free, runs locally, all-MiniLM-L6-v2</td></tr>
+      <tr><td>Cache L1</td><td>Python OrderedDict</td><td>LRU, &lt;1ms, process-local</td></tr>
+      <tr><td>Cache L2</td><td>Redis</td><td>Semantic TTL cache, survives restarts</td></tr>
+      <tr><td>Tracing</td><td>Langfuse</td><td>Free tier, beautiful UI, 3-line integration</td></tr>
+      <tr><td>Token counting</td><td>tiktoken</td><td>Accurate token estimates for Gemini</td></tr>
+      <tr><td>Framework (future)</td><td>LangGraph</td><td>Stateful multi-agent orchestration</td></tr>
+    </table>
+  </div>
+
+  <!-- FUTURE -->
+  <div class="section" id="future">
+    <h2>Future — multi-agent travel planner</h2>
+    <p>The ChatService, tool registry, and router you built are already plug-and-play. The travel agent just instantiates them with a different <code>project_id</code>.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">A</div>
+        <div class="step-body">
+          <div class="step-title">Agent A — Researcher</div>
+          <div class="step-desc">Searches flights, hotels, and attractions using web search + price APIs. Stores findings in ChromaDB under <code>project_id="travel"</code>. Same tool registry pattern as Phase 1.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">B</div>
+        <div class="step-body">
+          <div class="step-title">Agent B — Coordinator (+ Google Calendar MCP)</div>
+          <div class="step-desc">Decomposes the travel request, calls Agent A for research, queries Google Calendar MCP to check for conflicts, merges results into a structured plan.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">C</div>
+        <div class="step-body">
+          <div class="step-title">Agent C — Booker (human-in-the-loop)</div>
+          <div class="step-desc">Formats the itinerary and sets session status to <code>awaiting_approval</code>. Execution pauses. User sees the plan and types Confirm / Edit / Reject. Only on Confirm does Agent C proceed to book.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <strong>Human-in-the-loop is a state machine.</strong>
+      Add a <code>status</code> column to the messages table:
+      <code>running → awaiting_approval → confirmed / cancelled</code>.
+      The ChatService checks status before processing the next message.
+      This pattern is directly reusable for any approval workflow.
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // Highlight active nav item on scroll
+  const sections = document.querySelectorAll('.section');
+  const navItems = document.querySelectorAll('.nav-item');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navItems.forEach(n => n.classList.remove('active'));
+        const id = entry.target.id;
+        const active = document.querySelector(`.nav-item[href="#${id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

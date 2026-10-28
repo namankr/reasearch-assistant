@@ -2,7 +2,7 @@ import re
 
 # Known injection patterns — extend this list as you find new ones
 INJECTION_PATTERNS = [
-    r"ignore (all |previous |prior )?(instructions?|prompts?|context)",
+    r"ignore (all |previous |prior |the |above )*(instructions?|prompts?|context)",
     r"forget (everything|all|previous)",
     r"you are now",
     r"new (instructions?|persona|role|task|objective)",

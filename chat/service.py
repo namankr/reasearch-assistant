@@ -1,7 +1,7 @@
 import sqlite3
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from config import DB_PATH
 import tiktoken
 from config import MAX_HISTORY_TURNS, MAX_CONTEXT_TOKENS
@@ -29,6 +29,15 @@ class ChatService:
                     role      TEXT NOT NULL,
                     content   TEXT NOT NULL,
                     ts        TEXT NOT NULL
+                )
+            """)
+             conn.execute("""
+                CREATE TABLE IF NOT EXISTS sessions (
+                    session   TEXT PRIMARY KEY,
+                    project   TEXT NOT NULL,
+                    status    TEXT DEFAULT 'running',
+                    context   TEXT DEFAULT '{}',
+                    updated   TEXT
                 )
             """)
 
@@ -120,6 +129,78 @@ class ChatService:
 
     def get_session_id(self) -> str:
         return self.session_id
+
+    # ── Phase 8: session state machine + shared agent context ───────────────
+
+    def _ensure_session_row(self, conn):
+        conn.execute(
+            "INSERT OR IGNORE INTO sessions (session, project, updated) VALUES (?,?,?)",
+            (self.session_id, self.project_id, datetime.now(timezone.utc).isoformat())
+        )
+
+    def get_status(self) -> str:
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT status FROM sessions WHERE session=? AND project=?",
+                (self.session_id, self.project_id)
+            ).fetchone()
+        return row[0] if row else "running"
+
+    def set_status(self, status: str):
+        with self._conn() as conn:
+            self._ensure_session_row(conn)
+            conn.execute(
+                "UPDATE sessions SET status=?, updated=? WHERE session=? AND project=?",
+                (status, datetime.now(timezone.utc).isoformat(),
+                 self.session_id, self.project_id)
+            )
+
+    def _load_context(self, conn) -> dict:
+        row = conn.execute(
+            "SELECT context FROM sessions WHERE session=? AND project=?",
+            (self.session_id, self.project_id)
+        ).fetchone()
+        return json.loads(row[0]) if row and row[0] else {}
+
+    def set_context(self, key: str, value):
+        """Store JSON-serialisable shared state between agents."""
+        with self._conn() as conn:
+            self._ensure_session_row(conn)
+            ctx = self._load_context(conn)
+            ctx[key] = value
+            conn.execute(
+                "UPDATE sessions SET context=?, updated=? WHERE session=? AND project=?",
+                (json.dumps(ctx), datetime.now(timezone.utc).isoformat(),
+                 self.session_id, self.project_id)
+            )
+
+    def get_context(self, key: str):
+        with self._conn() as conn:
+            return self._load_context(conn).get(key)
+
+    def delete_sessions_older_than(self, days: int) -> list[str]:
+        """
+        Delete this project's sessions (messages + state) not touched in `days`.
+        Returns the deleted session ids so callers can purge vector memory too.
+        """
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+        with self._conn() as conn:
+            stale = [r[0] for r in conn.execute(
+                """SELECT session FROM (
+                       SELECT session, MAX(ts) AS last FROM (
+                           SELECT session, ts FROM messages WHERE project=?
+                           UNION ALL
+                           SELECT session, updated AS ts FROM sessions WHERE project=?
+                       ) GROUP BY session
+                   ) WHERE last < ?""",
+                (self.project_id, self.project_id, cutoff)
+            ).fetchall()]
+            for sid in stale:
+                conn.execute("DELETE FROM messages WHERE project=? AND session=?",
+                             (self.project_id, sid))
+                conn.execute("DELETE FROM sessions WHERE project=? AND session=?",
+                             (self.project_id, sid))
+        return stale
 
     def list_sessions(self) -> list[str]:
         """List all session IDs for this project."""

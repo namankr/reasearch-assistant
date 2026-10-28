@@ -4,6 +4,7 @@ google-genai>=1.0.0
 # Search providers
 ddgs==9.14.4
 tavily-python==0.7.25
+google-search-results>=2.4.2
 
 # SSL / networking
 truststore==0.10.0
@@ -25,6 +26,7 @@ tenacity>=8.2.0
 
 # Config / env
 python-dotenv==1.2.2
+pydantic>=2.0.0
 
 # Groq fallback LLM
 groq>=0.9.0
@@ -32,3 +34,10 @@ groq>=0.9.0
 # Observability and Testing
 langfuse>=4.0.0
 pytest==9.1.1
+# Phase 7 - Google Calendar
+google-api-python-client>=2.0.0
+google-auth>=2.0.0
+
+# Phase 9 - optional health endpoint (uvicorn health:app)
+# fastapi
+# uvicorn
