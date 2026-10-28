@@ -245,3 +245,13 @@ running ─► awaiting_approval ─ confirm ─► completed (calendar event cr
 - **Cache:** embed → nearest neighbour → distance below threshold ⇒ skip the LLM.
 - **Agent safety:** validate first, side effects last, human approves, service layer decides.
 - **Be candid about:** router inactive, dense-only retrieval, proxy groundedness, no live end-to-end run yet, booking limited to a calendar event.
+
+
+## 7.13 Resolving a GitHub push-protection block (leaked secrets)
+Secrets (e.g. `client_secret.json`, `token.json`) committed earlier stay in history even if a later commit deletes them, so push protection still rejects the push.
+1. Find the offending commit from the push error (`commit: <sha>`), then `git log --stat` to see its parent.
+2. Rewrite history so no commit contains the secret. For adjacent commits, squash: `git reset --soft <parent-of-offending-commit>`. Or run `git rebase -i <parent>^`, where `<parent>` is the commit *before* the offender (rebasing from the offender itself leaves it untouched).
+3. Untrack the files: `git rm --cached client_secret.json token.json`, and add them to `.gitignore`.
+4. Recommit (`git commit -m "..."`), then verify with `git log -p --all -S"<secret-fragment>"` that nothing remains.
+5. `git push` (use `--force-with-lease` if the branch was already pushed).
+6. Rotate/revoke the exposed credentials in Google Cloud Console and re-authorise.
